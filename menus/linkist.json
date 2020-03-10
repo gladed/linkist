@@ -2,8 +2,8 @@
   "context-menu": {
     "atom-text-editor": [
       {
-        "label": "Toggle linkist",
-        "command": "linkist:toggle"
+        "label": "Create or follow link",
+        "command": "linkist:link"
       }
     ]
   },
@@ -12,11 +12,11 @@
       "label": "Packages",
       "submenu": [
         {
-          "label": "linkist",
+          "label": "Linkist",
           "submenu": [
             {
-              "label": "Toggle",
-              "command": "linkist:toggle"
+              "label": "Link",
+              "command": "linkist:link"
             }
           ]
         }
