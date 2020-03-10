@@ -1,0 +1,26 @@
+{
+  "context-menu": {
+    "atom-text-editor": [
+      {
+        "label": "Toggle linkist",
+        "command": "linkist:toggle"
+      }
+    ]
+  },
+  "menu": [
+    {
+      "label": "Packages",
+      "submenu": [
+        {
+          "label": "linkist",
+          "submenu": [
+            {
+              "label": "Toggle",
+              "command": "linkist:toggle"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
