@@ -1,10 +1,9 @@
 {
   "name": "linkist",
   "main": "./lib/linkist",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Insert and follow links between documents in your project",
-  "keywords": [
-  ],
+  "keywords": [],
   "activationCommands": {
     "atom-workspace": "linkist:link"
   },
