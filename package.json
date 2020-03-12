@@ -1,9 +1,9 @@
 {
   "name": "linkist",
   "main": "./lib/linkist",
-  "version": "0.2.1",
+  "version": "0.2.0",
   "description": "Insert and follow links between documents in your project",
-  "keywords": [],
+  "keywords": [ "link", "navigation", "hyperlink" ],
   "activationCommands": {
     "atom-workspace": "linkist:link"
   },
@@ -13,6 +13,12 @@
     "atom": ">=1.0.0 <2.0.0"
   },
   "dependencies": {
-    "find-and-replace": ">0.219.3"
+  },
+  "configSchema": {
+    "filesToSearch": {
+      "type": "string",
+      "default": "*.md, *.txt",
+      "description": "Comma-separated filename globs to search."
+    }
   }
 }

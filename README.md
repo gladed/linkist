@@ -1,11 +1,15 @@
 # Linkist
 
-## To Install
+Creates links to navigate through documents in your project.
 
-In Atom, Edit >> Preferences >> Install , search for `linkist` and click `Install`.
+## Install
 
-## To Use
+1. Open [Atom](https://atom.io/).
+2. Type `Ctrl+,` and click `Install`.
+4. Type `linkist` and click its `Install` button.
 
-Push **Ctrl+Alt+L** to insert a new "link tag" at the cursor. It looks like this `^4xy^` and renders in markdown like this: ^4xy^.
+## Usage
 
-To visit other locations in the project with the same tag, put your cursor on a tag and enter **Ctrl+Alt+L**. (Currently this takes you to find-in-project but in the future will have more functionality.)
+Push **Ctrl+Alt+L** to insert a project-unique tag such as `^4xy^`.
+
+If a tag is already under the cursor, **Ctrl+Alt+L** takes you to the next matching tag in any `*.md` or `*.txt` file in your project.
