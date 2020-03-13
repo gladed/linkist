@@ -6,7 +6,8 @@
   "keywords": [
     "link",
     "navigation",
-    "hyperlink"
+    "hyperlink",
+    "zettelkasten"
   ],
   "activationCommands": {
     "atom-workspace": "linkist:link"

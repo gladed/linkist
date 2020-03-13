@@ -1,4 +1,3 @@
-# Dummy2: ^XX3^
+# Dummy2 [XX3]
 
-
-## Subsection ^XX3^
+* [Subsection](XX3)

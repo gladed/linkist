@@ -1,15 +1,22 @@
 # Linkist
 
-Creates links to navigate through documents in your project.
+Creates tags that connect documents, even if you move them around.
 
-## Install
+## Get it
 
 1. Open [Atom](https://atom.io/).
 2. Type `Ctrl+,` and click `Install`.
-4. Type `linkist` and click its `Install` button.
+4. Type `linkist` and install.
 
-## Usage
+## Use it
 
-Push **Ctrl+Alt+L** to insert a project-unique tag such as `^4xy^`.
+1. Just type **Ctrl+Alt+L** to create a unique "link tag", like `^4xy^`.
+2. Copy that tag anywhere else you like.
+3. Put your cursor on a tag and type **Ctrl+Alt+L** to jump to the next place where that tag is found.
 
-If a tag is already under the cursor, **Ctrl+Alt+L** takes you to the next matching tag in any `*.md` or `*.txt` file in your project.
+## And more...
+
+* Link tags keep working even when you rearrange content between files, or move the files around your project.
+* You can use this to implement a "Slip-box" note taking system. See https://zettelkasten.de and [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
+* The `^tag^` format is rendered in markdown as a ^superscript^ which looks like a footnote marker. If you prefer, you can use `[tag]` or `(tag)` instead. They all work the same.
+* By default `*.md` and `*.txt` files are searched. You can change this in Settings.
