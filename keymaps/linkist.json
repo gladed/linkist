@@ -1,5 +1,6 @@
 {
   "atom-workspace": {
-    "ctrl-alt-l": "linkist:link"
+    "ctrl-alt-l": "linkist:link",
+    "ctrl-alt-i": "linkist:insert-last"
   }
 }

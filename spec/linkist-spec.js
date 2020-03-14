@@ -19,8 +19,12 @@ describe('Linkist', () => {
     return editor.getTextInBufferRange(tagRangeNearCursor())
   }
 
-  async function link() {
-    await atom.commands.dispatch(editor.element, "linkist:link")
+  function link() {
+    return atom.commands.dispatch(editor.element, "linkist:link")
+  }
+
+  function insertLast() {
+    return atom.commands.dispatch(editor.element, "linkist:insert-last")
   }
 
   beforeEach(async () => {
@@ -42,6 +46,13 @@ describe('Linkist', () => {
       expect(tagNearCursor()).toMatch(caratLinkRe)
     })
 
+    // We don't want this because it makes it too easy for the user to type over it
+    // it('link adds and selects tag', async () => {
+    //   await link()
+    //   let tag = tagNearCursor()
+    //   expect(editor.getLastSelection().getText()).toEqual(tag)
+    // })
+
     it('link re-selects added tag', async() => {
       await link()
       let tag = tagNearCursor()
@@ -55,7 +66,7 @@ describe('Linkist', () => {
       editor.selectAll()
       await link()
       editor.selectAll()
-      expect(editor.getLastSelection().getText()).toMatch(/\[hello\]\([A-Z0-9a-z]{3,5}\)/)
+      expect(editor.getLastSelection().getText()).toMatch(/\[hello\]\(\^[A-Z0-9a-z]{3,5}\^\)/)
     })
 
     it('link alternates between two links', async() => {
@@ -72,6 +83,14 @@ describe('Linkist', () => {
       // Boink to the next tag
       await link()
       expect(editor.getLastSelection().getBufferRange()).toEqual(secondTagRange)
+    })
+
+    it('insert-last inserts last tag', async() => {
+      await link()
+      tag = tagNearCursor()
+      editor.insertText(`\n`)
+      await insertLast()
+      expect(tagNearCursor()).toEqual(tag)
     })
   });
 });

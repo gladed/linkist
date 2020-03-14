@@ -10,7 +10,10 @@
     "zettelkasten"
   ],
   "activationCommands": {
-    "atom-workspace": "linkist:link"
+    "atom-workspace": [
+      "linkist:link",
+      "linkist:insert-last"
+    ]
   },
   "repository": "https://github.com/gladed/linkist",
   "license": "MIT",

@@ -2,8 +2,18 @@
   "context-menu": {
     "atom-text-editor": [
       {
-        "label": "Create or follow link",
-        "command": "linkist:link"
+        "label": "Linkist",
+        "submenu": [
+          {
+            "label": "Create or follow link",
+            "command": "linkist:link"
+          },
+          {
+            "label": "Insert last link",
+            "command": "linkist:insert-last"
+          }
+        ]
+
       }
     ]
   },
@@ -15,8 +25,12 @@
           "label": "Linkist",
           "submenu": [
             {
-              "label": "Link",
+              "label": "Create or follow link",
               "command": "linkist:link"
+            },
+            {
+              "label": "Insert last link",
+              "command": "linkist:insert-last"
             }
           ]
         }
