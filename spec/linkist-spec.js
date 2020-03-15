@@ -66,7 +66,7 @@ describe('Linkist', () => {
       editor.selectAll()
       await link()
       editor.selectAll()
-      expect(editor.getLastSelection().getText()).toMatch(/\[hello\]\(\^[A-Z0-9a-z]{3,5}\^\)/)
+      expect(editor.getLastSelection().getText()).toMatch(/hello\^[A-Z0-9a-z]{3,5}\^/)
     })
 
     it('link alternates between two links', async() => {
@@ -91,6 +91,15 @@ describe('Linkist', () => {
       editor.insertText(`\n`)
       await insertLast()
       expect(tagNearCursor()).toEqual(tag)
+    })
+
+    it('link goes to end of word before insertion', async() => {
+      editor.insertText("happy")
+      editor.moveLeft(1)
+      await link()
+      editor.insertText("boy")
+      editor.selectAll()
+      expect(editor.getLastSelection().getText()).toMatch(/happy\^[A-Z0-9a-z]{3,5}\^boy/)
     })
   });
 });
