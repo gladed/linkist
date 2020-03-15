@@ -4,9 +4,11 @@ See [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versi
 
 ## [1.3.0]
 ### Removed
-- REMOVE: Remove alternate style (links are lies since they don't really work anywhere).
-- FIX: Attempts to insert tag inside a word will automatically move to the end of the word first.
-- FIX: Insertion followed by immediate keystrokes result in tag landing in the right place.
+- Remove alternate style (links are lies since they don't really work anywhere).
+
+### Changed
+- Attempts to insert tag inside a word will automatically move to the end of the word first.
+- Insertion followed by immediate keystrokes result in tag landing in the right place.
 
 ## [1.2.0]
 ### Added
