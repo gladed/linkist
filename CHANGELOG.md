@@ -2,6 +2,10 @@
 
 See [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.1]
+### Changed
+- Fixed insertion of tag at end of line
+
 ## [1.3.0]
 ### Removed
 - Remove alternate style (links are lies since they don't really work anywhere).

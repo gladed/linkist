@@ -12,7 +12,7 @@ describe('Linkist', () => {
   let workspaceElement, editor, caratLinkRe;
 
   function tagRangeNearCursor() {
-    return editor.getCursors()[0].getCurrentWordBufferRange({ wordRegex: caratLinkRe })
+    return editor.getLastCursor().getCurrentWordBufferRange({ wordRegex: caratLinkRe })
   }
 
   function tagNearCursor() {
@@ -27,33 +27,38 @@ describe('Linkist', () => {
     return atom.commands.dispatch(editor.element, "linkist:insert-last")
   }
 
+  function report() {
+    return atom.commands.dispatch(editor.element, "linkist:report")
+  }
+
   beforeEach(async () => {
-    caratLinkRe = /\^[A-Za-z0-9]{3,5}\^/
+    let caratLinkReText = `\\^[A-Za-z0-9]{3,5}\\^`
+    caratLinkRe = new RegExp(caratLinkReText)
     workspaceElement = atom.views.getView(atom.workspace);
     workspaceElement.style.height = '800px'
     atom.project.setPaths([path.join(__dirname, "fixtures")]);
+    await atom.workspace.open("test.md")
+    editor = atom.workspace.getCenter().getActiveTextEditor()
+    atom.packages.activatePackage('linkist')
   });
 
-  describe('on empty file', () => {
+  describe('link', () => {
     beforeEach(async () => {
-      await atom.workspace.open("test.md")
-      editor = atom.workspace.getCenter().getActiveTextEditor()
-      atom.packages.activatePackage('linkist')
     })
 
-    it('link adds tag', async () => {
+    it('adds tag', async () => {
       await link()
       expect(tagNearCursor()).toMatch(caratLinkRe)
     })
 
-    // We don't want this because it makes it too easy for the user to type over it
-    // it('link adds and selects tag', async () => {
-    //   await link()
-    //   let tag = tagNearCursor()
-    //   expect(editor.getLastSelection().getText()).toEqual(tag)
-    // })
+    it('adds tag at end of line', async () => {
+      editor.insertText("# Some text\n")
+      editor.getLastCursor().moveLeft()
+      await link()
+      expect(editor.getBuffer().getText()).toMatch(/\# Some text\^[A-Z0-9a-z]{3,5}\^/)
+    })
 
-    it('link re-selects added tag', async() => {
+    it('re-selects added tag', async() => {
       await link()
       let tag = tagNearCursor()
 
@@ -61,15 +66,7 @@ describe('Linkist', () => {
       expect(editor.getLastSelection().getText()).toEqual(tag)
     })
 
-    it('link creates a markdown link around selected text', async() => {
-      editor.insertText("hello")
-      editor.selectAll()
-      await link()
-      editor.selectAll()
-      expect(editor.getLastSelection().getText()).toMatch(/hello\^[A-Z0-9a-z]{3,5}\^/)
-    })
-
-    it('link alternates between two links', async() => {
+    it('alternates between two links', async() => {
       await link()
       firstTagRange = tagRangeNearCursor()
       tag = tagNearCursor()
@@ -85,15 +82,7 @@ describe('Linkist', () => {
       expect(editor.getLastSelection().getBufferRange()).toEqual(secondTagRange)
     })
 
-    it('insert-last inserts last tag', async() => {
-      await link()
-      tag = tagNearCursor()
-      editor.insertText(`\n`)
-      await insertLast()
-      expect(tagNearCursor()).toEqual(tag)
-    })
-
-    it('link goes to end of word before insertion', async() => {
+    it('goes to end of word before insertion', async() => {
       editor.insertText("happy")
       editor.moveLeft(1)
       await link()
@@ -102,4 +91,14 @@ describe('Linkist', () => {
       expect(editor.getLastSelection().getText()).toMatch(/happy\^[A-Z0-9a-z]{3,5}\^boy/)
     })
   });
+
+  describe('insert-last', () => {
+    it('inserts previously used tag', async () => {
+      await link()
+      tag = tagNearCursor()
+      editor.insertText(`\n`)
+      await insertLast()
+      expect(tagNearCursor()).toEqual(tag)
+    })
+  })
 });
