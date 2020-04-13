@@ -3,7 +3,7 @@
 import Linkist from '../lib/linkist';
 const path = require("path")
 
-// Use the command `window:run-package-specs` (cmd-alt-ctrl-p) to run specs.
+// Use the command `window:run-package-specs` (ctrl+shift+Y) to run specs.
 //
 // To run a specific `it` or `describe` block add an `f` to the front (e.g. `fit`
 // or `fdescribe`). Remove the `f` to unfocus the block.
@@ -68,6 +68,7 @@ describe('Linkist', () => {
 
     it('alternates between two links', async() => {
       await link()
+      editor.moveRight(1)
       firstTagRange = tagRangeNearCursor()
       tag = tagNearCursor()
       editor.insertText(`\n\n${tag}`)
@@ -86,9 +87,34 @@ describe('Linkist', () => {
       editor.insertText("happy")
       editor.moveLeft(1)
       await link()
+      editor.moveRight(1)
       editor.insertText("boy")
       editor.selectAll()
-      expect(editor.getLastSelection().getText()).toMatch(/happy\^[A-Z0-9a-z]{3,5}\^boy/)
+      expect(editor.getLastSelection().getText()).toMatch(/happy \^[A-Z0-9a-z]{3,5}\^boy/)
+    })
+
+    it('find tag in link', async() => {
+        editor.insertText("[A link](^tag^)\n\n# A Target ^tag^")
+        editor.moveToTop()
+        await link()
+        editor.moveToBeginningOfLine()
+        expect(editor.getLastCursor().getBufferRow()).toEqual(2)
+    })
+
+    it('find tag anywhere in heading', async() => {
+        editor.insertText("# Link Heading ^tag^\n\n# A Target ^tag^")
+        editor.moveToTop()
+        await link()
+        editor.moveToBeginningOfLine()
+        expect(editor.getLastCursor().getBufferRow()).toEqual(2)
+    })
+
+    it('insert link from selection', async() => {
+        editor.insertText("Untagged text")
+        editor.selectAll()
+        await link()
+        editor.selectAll()
+        expect(editor.getLastSelection().getText()).toMatch(/\[Untagged text\]\(\^[A-Z0-9a-z]{3,5}\^\)/)
     })
   });
 
