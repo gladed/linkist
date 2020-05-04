@@ -10,7 +10,7 @@ Creates tags that connect documents, even if you move them around.
 
 ## Use it
 
-1. To create a tag, type `Ctrl+Alt+L` and a tag like `^AaM^` will appear.
+1. To create a tag, type `Ctrl+Alt+L` and a tag like `^A2aM^` will appear.
 2. Go to another location and type `Ctrl+Alt+I` to insert another copy of that tag.
 3. Put your cursor on any tag and type `Ctrl+Alt+L` to cycle through other places with that tag.
 

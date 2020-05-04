@@ -2,6 +2,10 @@
 
 See [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [TBD: 1.3.3]
+### Added
+- Encode epoch day into tag
+
 ## [1.3.2]
 ### Added
 - Selected text when linked takes on `[selected text](^tag^)` style
