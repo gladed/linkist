@@ -51,6 +51,17 @@ describe('Linkist', () => {
   })
 
   describe('link', () => {
+    it('traverses nicely', async() => {
+      editor.insertText("\n* [Minor 1](^abcd^)\n# [Major](^abcd^)\n* [Minor 2](^abcd^)")
+      editor.moveUp(1)
+      await link()
+      expect(editor.getLastSelection().getBufferRange().start.row).toMatch(2) // Should go back to major entry
+      await link()
+      expect(editor.getLastSelection().getBufferRange().start.row).toMatch(1) // Should to top entry because we came from Minor 2
+      await link()
+      expect(editor.getLastSelection().getBufferRange().start.row).toMatch(3) // Go back to where we started finally
+    })
+
     it('adds link ID', async () => {
       await link()
       expect(linkIdNearCursor()).toMatch(caratLinkRe)
@@ -72,6 +83,7 @@ describe('Linkist', () => {
     })
 
     it('alternates between two links', async() => {
+      editor.insertText("\n")
       await link()
       editor.moveRight(1)
       firstLinkIdRange = linkIdRangeNearCursor()

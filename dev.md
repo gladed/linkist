@@ -11,4 +11,5 @@ To develop:
 * `Window: Run Package Tests` (Ctrl+Shift+Y) to run tests
 
 To release:
-* `apm publish patch | major | minor`
+* `apm publish patch` (or major or minor)
+* merge all to master

@@ -6,6 +6,7 @@
 - Fixed adding a tag when in empty parens.
 - Ctrl+Alt+I now acts more like Ctrl+Alt+L as it should.
 - Support following but not insertion of [[012345ABC]] style links.
+- Support faster link traversal and automatically going to header links first
 
 ## 1.3.2
 - Selected text when linked takes on `[selected text](^tag^)` style
