@@ -42,10 +42,15 @@ describe('Linkist', () => {
     atom.packages.activatePackage('linkist')
   });
 
-  describe('link', () => {
-    beforeEach(async () => {
-    })
+  describe('alt link', () => {
+      it('works', async() => {
+          editor.insertText("[[012345]]\n\n[[012345]]")
+          await link()
+          expect(editor.getLastSelection().getBufferRange().start.row).toMatch(0) // Should go back to top
+      })
+  })
 
+  describe('link', () => {
     it('adds link ID', async () => {
       await link()
       expect(linkIdNearCursor()).toMatch(caratLinkRe)
@@ -107,6 +112,24 @@ describe('Linkist', () => {
         await link()
         editor.moveToBeginningOfLine()
         expect(editor.getLastCursor().getBufferRow()).toEqual(2)
+    })
+
+    it('insert link into ()', async() => {
+        editor.insertText("# [Link Heading]()")
+        editor.moveLeft(1)
+        await link()
+        expect(editor.getText()).toMatch(/# \[Link Heading\]\(\^[a-zA-Z2-9]{3,5}\^\)/)
+    })
+
+    it('insert last link as markdown from selection', async() => {
+        editor.insertText("Link Heading")
+        editor.selectAll()
+        await link()
+        editor.moveRight(1)
+        editor.insertText("\nAnd more")
+        editor.selectToBeginningOfWord()
+        await insertLast()
+        expect(editor.getText()).toMatch(/\[more\]\(\^[a-zA-Z2-9]{3,5}\^\)/)
     })
 
     it('insert link from selection', async() => {
