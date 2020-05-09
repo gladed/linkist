@@ -1,6 +1,6 @@
 # Changelog
 
-## TBD: 1.3.3
+## 1.3.3
 - Replacing use of "tag" in code and docs with "link ID" for clarity.
 - Encode epoch day and ordinal into link ID for four-digit link IDs.
 - Fixed adding a tag when in empty parens.
