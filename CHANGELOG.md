@@ -4,7 +4,8 @@ See [Keep a Changelog](https://keepachangelog.com/en/1.0.0/) and [Semantic Versi
 
 ## [TBD: 1.3.3]
 ### Added
-- Encode epoch day into tag
+- Encode epoch day and ordinal into link ID for four-digit link IDs
+- Replacing use of "tag" with "link ID" for clarity.
 
 ## [1.3.2]
 ### Added

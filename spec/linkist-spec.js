@@ -11,12 +11,12 @@ const path = require("path")
 describe('Linkist', () => {
   let workspaceElement, editor, caratLinkRe;
 
-  function tagRangeNearCursor() {
+  function linkIdRangeNearCursor() {
     return editor.getLastCursor().getCurrentWordBufferRange({ wordRegex: caratLinkRe })
   }
 
-  function tagNearCursor() {
-    return editor.getTextInBufferRange(tagRangeNearCursor())
+  function linkIdNearCursor() {
+    return editor.getTextInBufferRange(linkIdRangeNearCursor())
   }
 
   function link() {
@@ -46,41 +46,41 @@ describe('Linkist', () => {
     beforeEach(async () => {
     })
 
-    it('adds tag', async () => {
+    it('adds link ID', async () => {
       await link()
-      expect(tagNearCursor()).toMatch(caratLinkRe)
+      expect(linkIdNearCursor()).toMatch(caratLinkRe)
     })
 
-    it('adds tag at end of line', async () => {
+    it('adds link ID at end of line', async () => {
       editor.insertText("# Some text\n")
       editor.getLastCursor().moveLeft()
       await link()
       expect(editor.getBuffer().getText()).toMatch(/\# Some text\^[A-Z0-9a-z]{3,5}\^/)
     })
 
-    it('re-selects added tag', async() => {
+    it('re-selects added link ID', async() => {
       await link()
-      let tag = tagNearCursor()
+      let linkId = linkIdNearCursor()
 
       await link()
-      expect(editor.getLastSelection().getText()).toEqual(tag)
+      expect(editor.getLastSelection().getText()).toEqual(linkId)
     })
 
     it('alternates between two links', async() => {
       await link()
       editor.moveRight(1)
-      firstTagRange = tagRangeNearCursor()
-      tag = tagNearCursor()
-      editor.insertText(`\n\n${tag}`)
-      secondTagRange = tagRangeNearCursor()
+      firstLinkIdRange = linkIdRangeNearCursor()
+      linkId = linkIdNearCursor()
+      editor.insertText(`\n\n${linkId}`)
+      secondLinkIdRange = linkIdRangeNearCursor()
 
-      // Boink back to the first tag
+      // Boink back to the first link ID
       await link()
-      expect(editor.getLastSelection().getBufferRange()).toEqual(firstTagRange)
+      expect(editor.getLastSelection().getBufferRange()).toEqual(firstLinkIdRange)
 
-      // Boink to the next tag
+      // Boink to the next link ID
       await link()
-      expect(editor.getLastSelection().getBufferRange()).toEqual(secondTagRange)
+      expect(editor.getLastSelection().getBufferRange()).toEqual(secondLinkIdRange)
     })
 
     it('goes to end of word before insertion', async() => {
@@ -93,16 +93,16 @@ describe('Linkist', () => {
       expect(editor.getLastSelection().getText()).toMatch(/happy \^[A-Z0-9a-z]{3,5}\^boy/)
     })
 
-    it('find tag in link', async() => {
-        editor.insertText("[A link](^tag^)\n\n# A Target ^tag^")
+    it('find link ID in link', async() => {
+        editor.insertText("[A link](^abcd^)\n\n# A Target ^abcd^")
         editor.moveToTop()
         await link()
         editor.moveToBeginningOfLine()
         expect(editor.getLastCursor().getBufferRow()).toEqual(2)
     })
 
-    it('find tag anywhere in heading', async() => {
-        editor.insertText("# Link Heading ^tag^\n\n# A Target ^tag^")
+    it('find link ID anywhere in heading', async() => {
+        editor.insertText("# Link Heading ^abcd^\n\n# A Target ^abcd^")
         editor.moveToTop()
         await link()
         editor.moveToBeginningOfLine()
@@ -110,21 +110,21 @@ describe('Linkist', () => {
     })
 
     it('insert link from selection', async() => {
-        editor.insertText("Untagged text")
+        editor.insertText("Unlinked text")
         editor.selectAll()
         await link()
         editor.selectAll()
-        expect(editor.getLastSelection().getText()).toMatch(/\[Untagged text\]\(\^[A-Z0-9a-z]{3,5}\^\)/)
+        expect(editor.getLastSelection().getText()).toMatch(/\[Unlinked text\]\(\^[A-Z0-9a-z]{3,5}\^\)/)
     })
   });
 
   describe('insert-last', () => {
-    it('inserts previously used tag', async () => {
+    it('inserts previously used link ID', async () => {
       await link()
-      tag = tagNearCursor()
+      linkId = linkIdNearCursor()
       editor.insertText(`\n`)
       await insertLast()
-      expect(tagNearCursor()).toEqual(tag)
+      expect(linkIdNearCursor()).toEqual(linkId)
     })
   })
 });

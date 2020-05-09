@@ -1,17 +1,5 @@
-^iKE^
+# [Link Heading](^hChR^)
 
+In a [paragraph](^hChR^)
 
-# Link Heading ^YUu^
-
-
-^YUu^ Link paragraph
-
-[In a link](^YUu^)
-
-Before first word
-* Cross reference ^YUu^
-* Make a link
-
-
-# spec-mktoc style:
-- [Embedded ^YUu^](#embedded-tag)
+* [In a list](^hChR^)
