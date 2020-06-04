@@ -10,7 +10,7 @@ export default class MarkdownDocumentProvider extends Disposable {
     private readonly onDidUpdateDocumentEmitter = this.register(new EventEmitter<MarkdownDocument>());
     private readonly onDidDeleteDocumentEmitter = this.register(new EventEmitter<Uri>());
     private watching = false;
-    
+
     async forEach(callback: (doc: MarkdownDocument) => void) {
         const resources = await workspace.findFiles('**/*.md', ' **/node_modules/**');
         for (const resource of resources) {
@@ -23,12 +23,12 @@ export default class MarkdownDocumentProvider extends Disposable {
 
     public get onDidUpdateDocument() {
         this.watchFiles();
-		return this.onDidUpdateDocumentEmitter.event;
+        return this.onDidUpdateDocumentEmitter.event;
     }
-    
+
     public get onDidDeleteDocument() {
-		this.watchFiles();
-		return this.onDidDeleteDocumentEmitter.event;
+        this.watchFiles();
+        return this.onDidDeleteDocumentEmitter.event;
     }
 
     private watchFiles() {
@@ -39,7 +39,7 @@ export default class MarkdownDocumentProvider extends Disposable {
 
         let fileWatcher = this.register(workspace.createFileSystemWatcher('**/*.md'));
         this.watching = true;
-        
+
         fileWatcher.onDidChange(async changed => {
             let document = await getMarkdownDocument(changed);
             if (document) {
@@ -58,9 +58,9 @@ export default class MarkdownDocumentProvider extends Disposable {
         });
 
         workspace.onDidChangeTextDocument(event => {
-			if (event.document.languageId === 'markdown') {
-				this.onDidUpdateDocumentEmitter.fire(event.document);
-			}
-		}, null, this.disposables);
+            if (event.document.languageId === 'markdown') {
+                this.onDidUpdateDocumentEmitter.fire(event.document);
+            }
+        }, null, this.disposables);
     }
 }

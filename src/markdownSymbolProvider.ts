@@ -2,7 +2,7 @@ import {
     Location,
     Range,
     SymbolInformation,
-    SymbolKind,    
+    SymbolKind,
     WorkspaceSymbolProvider,
 } from 'vscode';
 import { Disposable } from './util/disposable';
@@ -12,7 +12,7 @@ import { MarkdownDocument } from './markdown';
 import MarkdownDocumentProvider from './markdownDocumentProvider';
 
 export function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
-	return ([] as T[]).concat.apply([], arr);
+    return ([] as T[]).concat.apply([], arr);
 }
 
 export default class MarkdownSymbolProvider extends Disposable implements WorkspaceSymbolProvider {
@@ -36,7 +36,7 @@ export default class MarkdownSymbolProvider extends Disposable implements Worksp
         }
     }
 
-	public async provideWorkspaceSymbols(query: string): Promise<SymbolInformation[]> {
+    public async provideWorkspaceSymbols(query: string): Promise<SymbolInformation[]> {
         // Skip TOC lines because built-in "markdown-language-features" finds these
         return this.lookupSymbols(query).then(symbols =>
             symbols.filter(symbol => !symbol.name.startsWith("#")));
@@ -83,7 +83,7 @@ export default class MarkdownSymbolProvider extends Disposable implements Worksp
                 let line = document.lineAt(index).text;
                 let match;
                 while ((match = this.symbolRegex.exec(line)) !== null) {
-                    const location = new Location(document.uri, 
+                    const location = new Location(document.uri,
                         new Range(index, match.index, index, match.index + match[0].length));
                     // If the matched item doesn't appear in about 80-100 characters it does NOT
                     // show up in symbol list, so truncate.

@@ -14,10 +14,10 @@ export class LinkId {
         /** Numeric offset within date. */
         public readonly ordinal: number
     ) { }
-  
+
     /**
      * Given a text like "iwy3", return the corresponding {@link LinkId}.
-     * 
+     *
      * @param ordinal Numeric offset within the date (0-99).
      * @param date Date to encode in the link (default: today).
      */
@@ -27,7 +27,7 @@ export class LinkId {
         const date = new Date((Math.floor(decoded / 100)) * 24 * 60 * 60 * 1000);
         return new LinkId(text, date, ordinal);
     }
-    
+
     private static decodeToInt(text: string) {
         let digits: number[] = [];
         let lastDigit = 7;
@@ -42,12 +42,12 @@ export class LinkId {
 
     /**
      * Return a generated {@link LinkId}.
-     * 
+     *
      * @param ordinal Numeric offset within the date (0-99).
      * @param date Date to encode in the link (default: today).
      */
     static create(ordinal: number, date: Date = new Date()) {
-        const days = Math.floor(date.getTime() / 8.64e7);        
+        const days = Math.floor(date.getTime() / 8.64e7);
         return new LinkId(LinkId.endcodeToString(days * 100 + ordinal), date, ordinal);
     }
 
