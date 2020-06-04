@@ -1,5 +1,6 @@
 {
 	"name": "linkist",
+	"publisher": "gladed",
 	"displayName": "linkist",
 	"description": "Create and follow permanent links in Markdown files",
 	"version": "0.0.1",
@@ -10,10 +11,18 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:linkist.link"
+		"onCommand:linkist.link",
+		"onLanguage:markdown"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
+		"keybindings": [
+			{
+				"command": "linkist.link",
+				"key": "ctrl+alt+l",
+				"when": "editorTextFocus"
+			}
+		],
 		"commands": [
 			{
 				"command": "linkist.link",

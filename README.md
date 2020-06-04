@@ -1,65 +1,35 @@
-# linkist README
+# Linkist
 
-This is the README for your extension "linkist". After writing up a brief description, we recommend including the following sections.
+A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed.linkist) that creates persistent links between markdown documents in your workspace.
 
-## Features
+## Install
 
-Describe specific features of your extension including screenshots of your extension in action. Image paths are relative to this README file.
+1. Open [VSCode](https://code.visualstudio.com/) or [VSCodium](https://github.com/VSCodium/vscodium).
+2. [Ctrl+P] then paste `ext install gladed.linkist`
 
-For example if there is an image subfolder under your extension project workspace:
+## Usage
 
-\!\[feature X\]\(images/feature-x.png\)
+1. Put your cursor on a markdown heading
 
-> Tip: Many popular extensions utilize animations. This is an excellent way to show off your extension! We recommend short, focused animations that are easy to follow.
+    ```md
+    # Horses
+    ```
+    and type `Ctrl+Alt+L`:
 
-## Requirements
+    ```md
+    # [Horses](^2FnK^)
+    ```
+2. Copy that link anywhere else in your workspace, changing the text if you like:
 
-If you have any requirements or dependencies, add a section describing those and how to install and configure them.
+    ```md
+    ## Zebras
 
-## Extension Settings
+    Zebras are similar to [horses](^2FnK^).
+    ```
 
-Include if your extension adds any VS Code settings through the `contributes.configuration` extension point.
+3. Put your cursor on that link and type `Ctrl+Alt+L` again to go back to the heading.
 
-For example:
+## Advanced Topics
 
-This extension contributes the following settings:
-
-* `myExtension.enable`: enable/disable this extension
-* `myExtension.thing`: set to `blah` to do something
-
-## Known Issues
-
-Calling out known issues can help limit users opening duplicate issues against your extension.
-
-## Release Notes
-
-Users appreciate release notes as you update your extension.
-
-### 1.0.0
-
-Initial release of ...
-
-### 1.0.1
-
-Fixed issue #.
-
-### 1.1.0
-
-Added features X, Y, and Z.
-
------------------------------------------------------------------------------------------------------------
-
-## Working with Markdown
-
-**Note:** You can author your README using Visual Studio Code.  Here are some useful editor keyboard shortcuts:
-
-* Split the editor (`Cmd+\` on macOS or `Ctrl+\` on Windows and Linux)
-* Toggle preview (`Shift+CMD+V` on macOS or `Shift+Ctrl+V` on Windows and Linux)
-* Press `Ctrl+Space` (Windows, Linux) or `Cmd+Space` (macOS) to see a list of Markdown snippets
-
-### For more information
-
-* [Visual Studio Code's Markdown Support](http://code.visualstudio.com/docs/languages/markdown)
-* [Markdown Syntax Reference](https://help.github.com/articles/markdown-basics/)
-
-**Enjoy!**
+* Read the [Change Log](CHANGELOG.md).
+* Use links to implement a "Zettelkasten" note taking system as described in [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
