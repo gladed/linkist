@@ -3,7 +3,11 @@
 	"publisher": "gladed",
 	"displayName": "linkist",
 	"description": "Create and follow permanent links in Markdown files",
-	"version": "0.0.1",
+	"version": "0.0.2",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/gladed/linkist"
+	  },
 	"engines": {
 		"vscode": "^1.45.0"
 	},
