@@ -29,8 +29,10 @@ A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed
     ```
 
 3. Put your cursor on that link and type `Ctrl+Alt+L` again to go back to the heading.
+4. Type `Ctrl+Alt+L` yet again to see all other places the link ID appears.
 
 ## Advanced Topics
 
+* Implement a "Zettelkasten" note taking system as described in [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
 * Read the [Change Log](CHANGELOG.md).
-* Use links to implement a "Zettelkasten" note taking system as described in [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
+* Read [Frequently Asked Questions](https://github.com/gladed/linkist/wiki/FAQ).

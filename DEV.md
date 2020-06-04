@@ -5,6 +5,7 @@
 * API docs at https://code.visualstudio.com/api/references/vscode-api
 * [Document your APIs](https://typedoc.org/guides/doccomments/)
 * Write [Unit Tests](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
+* 4-spaces, no tabs, no trailing spaces: `find src -name "*.ts" -exec bash -c 'expand -it 4 {} | sed -E "s/[[:space:]]*$//" | sponge {}' \;`
 
 ## Package and release
 
