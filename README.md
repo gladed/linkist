@@ -5,16 +5,17 @@ A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed
 ## Install
 
 1. Open [VSCode](https://code.visualstudio.com/) or [VSCodium](https://github.com/VSCodium/vscodium).
-2. [Ctrl+P] then paste `ext install gladed.linkist`
+2. Type `Ctrl+P` then paste in: `ext install gladed.linkist`
 
 ## Usage
 
-1. Put your cursor on a markdown heading
+1. Put your cursor on a markdown heading ...
 
     ```md
     # Horses
     ```
-    and type `Ctrl+Alt+L`:
+
+    ...and type `Ctrl+Alt+L`:
 
     ```md
     # [Horses](^2FnK^)
@@ -24,7 +25,7 @@ A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed
     ```md
     ## Zebras
 
-    Zebras are similar to [horses](^2FnK^).
+    Zebras are like [horses](^2FnK^), but with stripes.
     ```
 
 3. Put your cursor on that link and type `Ctrl+Alt+L` again to go back to the heading.

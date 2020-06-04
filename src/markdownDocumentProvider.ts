@@ -4,7 +4,7 @@ import {
     workspace,
 } from 'vscode';
 import { getMarkdownDocument, MarkdownDocument } from './markdown';
-import { Disposable } from './disposable';
+import { Disposable } from './util/disposable';
 
 export default class MarkdownDocumentProvider extends Disposable {
     private readonly onDidUpdateDocumentEmitter = this.register(new EventEmitter<MarkdownDocument>());

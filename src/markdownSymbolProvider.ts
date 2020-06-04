@@ -5,9 +5,9 @@ import {
     SymbolKind,    
     WorkspaceSymbolProvider,
 } from 'vscode';
-import { Disposable } from './disposable';
-import { Lazy, lazy } from './lazy';
-import { Link } from './link';
+import { Disposable } from './util/disposable';
+import { Lazy, lazy } from './util/lazy';
+import { LinkId } from './util/link';
 import { MarkdownDocument } from './markdown';
 import MarkdownDocumentProvider from './markdownDocumentProvider';
 
@@ -29,8 +29,8 @@ export default class MarkdownSymbolProvider extends Disposable implements Worksp
         // Find an unused link ID
         let ordinal = 0;
         while (true) {
-            let link = Link.create(ordinal++);
-            if ((await this.lookupSymbols(link.id)).length === 0) {
+            let link = LinkId.create(ordinal++);
+            if ((await this.lookupSymbols(link.text)).length === 0) {
                 return link;
             }
         }

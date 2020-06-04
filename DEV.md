@@ -3,6 +3,8 @@
 ## Development Environment
 * VSCode itself, open this repo, push F5
 * API docs at https://code.visualstudio.com/api/references/vscode-api
+* [Document your APIs](https://typedoc.org/guides/doccomments/)
+* Write [Unit Tests](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
 
 ## Package and release
 
