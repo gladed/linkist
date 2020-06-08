@@ -39,8 +39,13 @@ export async function activate(context: ExtensionContext) {
             } else {
                 window.showWarningMessage("'" + linkId + "' does not link to anything");
             }
+        } else if (editorHandler.visitUri(editor, editor.selection)) {
+            // If true, request was launched so do nothing
         } else {
-            await editorHandler.insertLink(editor, (await symbolProvider.newLink()).text);
+            const range = await editorHandler.insertLink(editor, (await symbolProvider.newLink()).text);
+            if (range) {
+                editor.selection = new Selection(range.start, range.end);
+            }
         }
         // TODO: This is a cool thing we can do with links but we will need to update diagnostics whenever
         // the file changes so we really need something like a MarkdownDiagnosticsProvider.
