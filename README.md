@@ -36,3 +36,4 @@ A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed
 * Implement a "Zettelkasten" note taking system as described in [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
 * Read the [Change Log](CHANGELOG.md).
 * Read [Frequently Asked Questions](https://github.com/gladed/linkist/wiki/FAQ).
+* Select multiple lines (starting with a heading) and `Ctrl+Alt+L` will extract that section into a new file, replacing it with a link.
