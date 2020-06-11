@@ -29,6 +29,5 @@ git commit -m "Updated changelog"
 vsce publish [patch | minor | major]
 
 # Tag
-git tag [v1.4.0]
 git push --tags
 ```

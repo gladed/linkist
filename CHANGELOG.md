@@ -1,10 +1,15 @@
 # Change Log
 
+## 1.4.2
+
+* Fixed cursor location prior to opening symbol searcher.
+* If there are only two link ID instances, just bounce between them.
+
 ## 1.4.1
 
 * Fixed some cases for finding link IDs and the right place to insert them
 * Added multiline extract-to-file
-* Visit link if it's the only thing on the line
+* Visit external link if it's the only thing on the line
 
 ## 1.4.0
 

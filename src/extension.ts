@@ -6,15 +6,15 @@ import {
     languages,
     window,
 } from 'vscode';
-import MarkdownSymbolProvider from './markdownSymbolProvider';
+import MarkdownLinkProvider from './markdownLinkProvider';
 import { EditorLinkHandler } from './editorLinkHandler';
 
 export async function activate(context: ExtensionContext) {
 
-    const symbolProvider = new MarkdownSymbolProvider();
+    const linkProvider = new MarkdownLinkProvider();
     const editorHandler = new EditorLinkHandler();
 
-    context.subscriptions.push(symbolProvider);
+    context.subscriptions.push(linkProvider);
 
     context.subscriptions.push(commands.registerCommand('linkist.link', async () => {
         const editor = window.activeTextEditor;
@@ -23,12 +23,18 @@ export async function activate(context: ExtensionContext) {
         }
         const linkId = editorHandler.linkIdNearCursor(editor);
         if (linkId) {
-            let symbols = await symbolProvider.lookupSymbols(linkId);
-            if (symbols.length > 1) {
+            let links = await linkProvider.lookupLinks(linkId);
+            if (links.length === 2) {
+                let jumpTo = links[0];
+                if (jumpTo.location.range.start.line === editor.selection.start.line) {
+                    jumpTo = links[1];
+                }
+                let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
+                await window.showTextDocument(jumpTo.location.uri, {selection: jumpTo.location.range, viewColumn: viewColumn});
+            } else if (links.length > 2) {
                 let jumpTo: SymbolInformation | undefined;
-
                 if (!editor.document.lineAt(editor.selection.start.line).text.startsWith("#")) {
-                    jumpTo = symbols.find(symbol => symbol.name.startsWith("#"));
+                    jumpTo = links.find(symbol => symbol.name.startsWith("#"));
                 }
                 if (jumpTo) {
                     let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
@@ -42,7 +48,7 @@ export async function activate(context: ExtensionContext) {
         } else if (editorHandler.visitUri(editor, editor.selection)) {
             // If true, request was launched so do nothing
         } else {
-            const range = await editorHandler.insertLink(editor, (await symbolProvider.newLink()).text);
+            const range = await editorHandler.insertLink(editor, (await linkProvider.newLinkId()).text);
             if (range) {
                 editor.selection = new Selection(range.start, range.end);
             }
@@ -59,7 +65,7 @@ export async function activate(context: ExtensionContext) {
         // collection.set(editor.document.uri, diagnostics);
     }));
 
-    context.subscriptions.push(languages.registerWorkspaceSymbolProvider(symbolProvider));
+    context.subscriptions.push(languages.registerWorkspaceSymbolProvider(linkProvider));
 }
 
 export function deactivate() { }

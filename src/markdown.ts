@@ -15,7 +15,7 @@ export interface MarkdownDocument {
     lineAt(line: number): MarkdownLine;
 }
 
-// Return resource as a markdown document from the current workspace if open, or from disk if not
+/** Return a resource as markdown if possible. */
 export async function getMarkdownDocument(resource: Uri): Promise<MarkdownDocument | undefined> {
     // Return loaded document
     const openAlready = workspace.textDocuments.find(doc => doc.uri.toString() === resource.toString());

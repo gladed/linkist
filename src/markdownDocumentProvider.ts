@@ -6,11 +6,13 @@ import {
 import { getMarkdownDocument, MarkdownDocument } from './markdown';
 import { Disposable } from './util/disposable';
 
+/** Watch for changes to all markdown files in the workspace. */
 export default class MarkdownDocumentProvider extends Disposable {
     private readonly onDidUpdateDocumentEmitter = this.register(new EventEmitter<MarkdownDocument>());
     private readonly onDidDeleteDocumentEmitter = this.register(new EventEmitter<Uri>());
     private watching = false;
 
+    /** Invoke {@param callback} for every markdown document in the workspace. */
     async forEach(callback: (doc: MarkdownDocument) => void) {
         const resources = await workspace.findFiles('**/*.md', ' **/node_modules/**');
         for (const resource of resources) {
@@ -21,11 +23,13 @@ export default class MarkdownDocumentProvider extends Disposable {
         }
     }
 
+    /** Return an event that fires whenever a markdown document is created or altered. */
     public get onDidUpdateDocument() {
         this.watchFiles();
         return this.onDidUpdateDocumentEmitter.event;
     }
 
+    /** Return an event that fires whenever a markdown document is deleted. */
     public get onDidDeleteDocument() {
         this.watchFiles();
         return this.onDidDeleteDocumentEmitter.event;
@@ -35,7 +39,6 @@ export default class MarkdownDocumentProvider extends Disposable {
         if (this.watching) {
             return;
         }
-
 
         let fileWatcher = this.register(workspace.createFileSystemWatcher('**/*.md'));
         this.watching = true;

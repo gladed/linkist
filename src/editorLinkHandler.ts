@@ -42,15 +42,16 @@ export class EditorLinkHandler {
         // Cursor plain link ID
         let match = editor.document.getWordRangeAtPosition(editor.selection.active, this.idRe);
         if (match) {
-            return editor.document.getText(new Range(
-                match.start.translate(0, 1), match.end.translate(0, -1)));
+            editor.selection = new Selection(
+                match.start.translate(0, 1), match.end.translate(0, -1));
+            return editor.document.getText(editor.selection);
         }
 
         // Cursor on `* [markdown](^....^)` link ID
         match = editor.document.getWordRangeAtPosition(editor.selection.active, this.prefixLinkRe);
         if (match) {
-            return editor.document.getText(new Range(
-                match.end.translate(0, -6), match.end.translate(0, -2)));
+            editor.selection = new Selection(match.end.translate(0, -6), match.end.translate(0, -2));
+            return editor.document.getText(editor.selection);
         }
         return undefined;
     }
