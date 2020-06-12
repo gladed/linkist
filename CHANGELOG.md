@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.4.2
+## 1.4.4
 
 * Ctrl+Click links in file to follow them to the link ID on a header line.
 * Fixed cursor location prior to opening symbol searcher.
