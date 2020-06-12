@@ -16,6 +16,7 @@ export async function activate(context: ExtensionContext) {
 
     context.subscriptions.push(linkProvider);
 
+    // Enable the link command
     context.subscriptions.push(commands.registerCommand('linkist.link', async () => {
         const editor = window.activeTextEditor;
         if (!editor) {
@@ -65,7 +66,13 @@ export async function activate(context: ExtensionContext) {
         // collection.set(editor.document.uri, diagnostics);
     }));
 
+    // Allow symbol linking
     context.subscriptions.push(languages.registerWorkspaceSymbolProvider(linkProvider));
+
+    // Allow link clicking
+    const markdownSelector = { scheme: 'file', language: 'markdown' };
+    context.subscriptions.push(
+        languages.registerDocumentLinkProvider(markdownSelector, linkProvider));
 }
 
 export function deactivate() { }

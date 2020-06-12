@@ -2,6 +2,7 @@
 
 ## 1.4.2
 
+* Ctrl+Click links in file to follow them to the link ID on a header line.
 * Fixed cursor location prior to opening symbol searcher.
 * If there are only two link ID instances, just bounce between them.
 

@@ -62,4 +62,8 @@ export class LinkId {
         }
         return linkId;
     }
+
+    public equals(other: LinkId): boolean {
+        return this.text === other.text;
+    }
 }

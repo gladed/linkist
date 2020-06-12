@@ -1,8 +1,12 @@
 import {
+    CancellationToken,
     Location,
+    DocumentLink,
+    DocumentLinkProvider,
     Range,
     SymbolInformation,
     SymbolKind,
+    TextDocument,
     Uri,
     WorkspaceSymbolProvider,
 } from 'vscode';
@@ -16,7 +20,26 @@ export function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
     return ([] as T[]).concat.apply([], arr);
 }
 
-export class Link extends SymbolInformation {
+export class Link extends SymbolInformation implements DocumentLink {
+    /**
+     * The range this link applies to.
+     */
+    public range: Range;
+
+    /**
+     * The uri this link points to.
+     */
+    public target?: Uri;
+
+    /**
+     * The tooltip text when you hover over this link.
+     *
+     * If a tooltip is provided, is will be displayed in a string that includes instructions on how to
+     * trigger the link, such as `{0} (ctrl + click)`. The specific instructions vary depending on OS,
+     * user settings, and localization.
+     */
+    public tooltip?: string;
+
     constructor(
         /**
          * A descriptive string for the link. May include some context around the link to allow
@@ -30,21 +53,45 @@ export class Link extends SymbolInformation {
         location: Location,
 
         /** The referenced linkId found in {@param location}. */
-        public linkId: LinkId
+        public linkId: LinkId,
     ) {
         super(name, SymbolKind.String, '', location);
+        this.range = location.range;
     }
 }
 
 /** A class that delivers links upon request. */
-export default class MarkdownLinkProvider extends Disposable implements WorkspaceSymbolProvider {
-    /** A map of markdown resource locations to lazily-evaluated lists of links. */
-    private cache: Map<Uri, Lazy<Link[]>> | undefined;
+export default class MarkdownLinkProvider extends Disposable
+    implements WorkspaceSymbolProvider, DocumentLinkProvider
+{
+    private _cache = lazy(async () => {
+        let cache = new Map<string, Lazy<Link[]>>();
+
+        // Initialize the cache and watch for document changes anywhere
+        await this.markdownProvider.forEach(doc => {
+            cache.set(doc.uri.fsPath, this.scan(doc));
+        });
+        this.register(this.markdownProvider.onDidDeleteDocument(deleted => {
+            cache.delete(deleted.fsPath);
+        }));
+        this.register(this.markdownProvider.onDidUpdateDocument(updated => {
+            cache.set(updated.uri.fsPath, this.scan(updated));
+        }));
+        return cache;
+    });
 
     private linkIdRe = /\^[A-Za-z0-9]{4,7}\^/g;
     private markdownLinkRe = new RegExp(/\[[^\]]\]\(/.source + this.linkIdRe.source + '\\)');
     private anyLinkRe = new RegExp(
         '(' + this.markdownLinkRe.source + ')|(' + this.linkIdRe.source + ')', 'g');
+
+    /**
+     * A map of markdown resource locations to lazily-evaluated lists of links.
+     * Note: string is used instead of Uri for accurate comparisons.
+     */
+    private get cache(): Promise<Map<string, Lazy<Link[]>>> {
+        return this._cache.value;
+    }
 
     public constructor(
         private markdownProvider = new MarkdownDocumentProvider()
@@ -52,7 +99,7 @@ export default class MarkdownLinkProvider extends Disposable implements Workspac
         super();
     }
 
-    /** Return an unused link ID appropriate for the current date. */
+    /** WorkspaceSymbolProvider: Return an unused link ID appropriate for the current date. */
     public async newLinkId() {
         let ordinal = 0;
         while (true) {
@@ -63,18 +110,37 @@ export default class MarkdownLinkProvider extends Disposable implements Workspac
         }
     }
 
+    /** DocumentLinkProvider: quickly return all links in {@param document}. */
+    public async provideDocumentLinks(document: TextDocument, _: CancellationToken) {
+        return (await this.cache).get(document.uri.fsPath)?.value;
+    }
+
+    private isHead(link: Link) {
+        return link.name.startsWith('#');
+    }
+
+    /** DocumentLinkProvider: resolve links found in a document. */
+    public async resolveDocumentLink(link: Link, _: CancellationToken) {
+        for (let links of (await this.cache).values()) {
+            for (let found of links.value) {
+                if (found.linkId.equals(link.linkId) && this.isHead(found)) {
+                    link.target = Uri.parse(found.location.uri.toString() + "#L" + found.location.range.start.line);
+                    return link;
+                }
+            }
+        }
+        return link;
+    }
+
     /** Given a query, return matching symbols. */
     public async provideWorkspaceSymbols(query: string): Promise<SymbolInformation[]> {
-        return this.lookupLinks(query).then(symbols =>
+        return this.lookupLinks(query).then(links =>
             // Skip TOC lines because built-in "markdown-language-features" finds these
-            symbols.filter(symbol => !symbol.name.startsWith("#")));
+            links.filter(link => !link.name.startsWith("#")));
     }
 
     public async lookupLinks(query: string): Promise<Link[]> {
-        if (this.cache === undefined) {
-            this.cache = await this.initCache();
-        }
-        return Promise.all(Array.from(this.cache.values()).map(x => x.value))
+        return Promise.all(Array.from((await this.cache).values()).map(x => x.value))
             .then(sets => {
                 let all = flatten(sets)
                     .filter(symbol => symbol.name.indexOf(query) !== -1);
@@ -84,25 +150,8 @@ export default class MarkdownLinkProvider extends Disposable implements Workspac
                 return all.filter((item, index, array) =>
                     array.findIndex(item2 =>
                         item.location.range.start.line === item2.location.range.start.line &&
-                        item.location.uri === item2.location.uri) === index);
+                        item.location.uri.fsPath === item2.location.uri.fsPath) === index);
             });
-    }
-
-    /** Return an initially populated cache of links */
-    private async initCache() {
-        const cache = new Map<Uri, Lazy<Link[]>>();
-
-        // Initialize the cache and watch for document changes anywhere
-        await this.markdownProvider.forEach(doc => {
-            cache.set(doc.uri, this.scan(doc));
-        });
-        this.register(this.markdownProvider.onDidDeleteDocument(deleted => {
-            cache.delete(deleted);
-        }));
-        this.register(this.markdownProvider.onDidUpdateDocument(updated => {
-            cache.set(updated.uri, this.scan(updated));
-        }));
-        return cache;
     }
 
     private scan(document: MarkdownDocument): Lazy<Link[]> {
@@ -112,7 +161,7 @@ export default class MarkdownLinkProvider extends Disposable implements Workspac
                 let line = document.lineAt(index).text;
                 let match;
                 while ((match = this.anyLinkRe.exec(line)) !== null) {
-                    const linkId = LinkId.decode(match[0].match(this.linkIdRe)![0]);
+                    const linkId = LinkId.decode(match[0].match(this.linkIdRe)![0].slice(1, -1));
                     const location = new Location(document.uri,
                         new Range(index, match.index, index, match.index + match[0].length));
                     // If the matched item doesn't appear in about 80-100 characters it does NOT
