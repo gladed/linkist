@@ -1,11 +1,9 @@
 import {
     CancellationToken,
     Location,
-    DocumentLink,
     DocumentLinkProvider,
     Range,
     SymbolInformation,
-    SymbolKind,
     TextDocument,
     Uri,
     WorkspaceSymbolProvider,
@@ -15,49 +13,11 @@ import { Lazy, lazy } from './util/lazy';
 import { LinkId } from './util/linkId';
 import { MarkdownDocument } from './markdown';
 import MarkdownDocumentProvider from './markdownDocumentProvider';
+import { Re } from './util/Re';
+import { Link } from './Link';
 
 export function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
     return ([] as T[]).concat.apply([], arr);
-}
-
-export class Link extends SymbolInformation implements DocumentLink {
-    /**
-     * The range this link applies to.
-     */
-    public range: Range;
-
-    /**
-     * The uri this link points to.
-     */
-    public target?: Uri;
-
-    /**
-     * The tooltip text when you hover over this link.
-     *
-     * If a tooltip is provided, is will be displayed in a string that includes instructions on how to
-     * trigger the link, such as `{0} (ctrl + click)`. The specific instructions vary depending on OS,
-     * user settings, and localization.
-     */
-    public tooltip?: string;
-
-    constructor(
-        /**
-         * A descriptive string for the link. May include some context around the link to allow
-         * for better pattern matching. (TODO: Sloppy but required for good symbol searches.)
-         */
-        name: string,
-
-        /**
-         * Location of the complete `[markdown](^...^)` link or just `^...^` if standalone
-         */
-        location: Location,
-
-        /** The referenced linkId found in {@param location}. */
-        public linkId: LinkId,
-    ) {
-        super(name, SymbolKind.String, '', location);
-        this.range = location.range;
-    }
 }
 
 /** A class that delivers links upon request. */
@@ -79,11 +39,6 @@ export default class MarkdownLinkProvider extends Disposable
         }));
         return cache;
     });
-
-    private linkIdRe = /\^[A-Za-z0-9]{4,7}\^/g;
-    private markdownLinkRe = new RegExp(/\[[^\]]\]\(/.source + this.linkIdRe.source + '\\)');
-    private anyLinkRe = new RegExp(
-        '(' + this.markdownLinkRe.source + ')|(' + this.linkIdRe.source + ')', 'g');
 
     /**
      * A map of markdown resource locations to lazily-evaluated lists of links.
@@ -115,16 +70,13 @@ export default class MarkdownLinkProvider extends Disposable
         return (await this.cache).get(document.uri.fsPath)?.value;
     }
 
-    private isHead(link: Link) {
-        return link.name.startsWith('#');
-    }
-
     /** DocumentLinkProvider: resolve links found in a document. */
     public async resolveDocumentLink(link: Link, _: CancellationToken) {
         for (let links of (await this.cache).values()) {
             for (let found of links.value) {
-                if (found.linkId.equals(link.linkId) && this.isHead(found)) {
-                    link.target = Uri.parse(found.location.uri.toString() + "#L" + found.location.range.start.line);
+                if (found.linkId.equals(link.linkId) && found.isHead()) {
+                    const lineNumber = found.location.range.start.line + 1;
+                    link.target = Uri.parse(found.location.uri.toString() + "#L" + lineNumber);
                     return link;
                 }
             }
@@ -158,18 +110,16 @@ export default class MarkdownLinkProvider extends Disposable
         return lazy(() => {
             const links: Link[] = [];
             for (let index = 0; index < document.lineCount; index++) {
-                let line = document.lineAt(index).text;
+                let lineText = document.lineAt(index).text;
                 let match;
-                while ((match = this.anyLinkRe.exec(line)) !== null) {
-                    const linkId = LinkId.decode(match[0].match(this.linkIdRe)![0].slice(1, -1));
+                while ((match = Re.anyLink.exec(lineText)) !== null) {
+                    console.log("In " + document.uri.fsPath + " matched " + match[0]);
+                    const linkId = LinkId.decode(match[0].match(Re.linkId)![0].slice(1, -1));
                     const location = new Location(document.uri,
                         new Range(index, match.index, index, match.index + match[0].length));
-                    // If the matched item doesn't appear in about 80-100 characters it does NOT
-                    // show up in symbol list, so truncate.
-                    const start = Math.max(match.index - 70, 0);
                     links.push(new Link(
-                        line.slice(start, line.length),
                         location,
+                        lineText,
                         linkId));
                 }
             }

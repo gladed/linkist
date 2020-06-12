@@ -5,23 +5,19 @@ import {
     TextEditor,
     Uri,
     workspace,
-    window,
     commands,
-    TreeItem,
 } from 'vscode';
 import { camelize } from './util/text';
 import { TextEncoder } from 'util';
+import { Re } from './util/Re';
 
 
 export class EditorLinkHandler {
 
-    /** A link ID */
-    idRe = new RegExp(/\^[A-Za-z0-9]{4,7}\^/);
-
     /** The [title] part of a markdown link */
     linkTitleRe = /\[[^\\[]+\]/;
     /** The [whole](link) */
-    linkRe = new RegExp(this.linkTitleRe.source + '\\(' + this.idRe.source + '\\)');
+    linkRe = new RegExp(this.linkTitleRe.source + '\\(' + Re.linkId.source + '\\)');
     /** The prefix part of a markdown line including headings and bullets. */
     prefixRe = new RegExp(/^ *(\#+|[0-9]+\.|[\*-]( ?\[.?\])?) */);
     /** An optionally prefixed link with no target attached. */
@@ -40,7 +36,7 @@ export class EditorLinkHandler {
         if (editor.selection.start.line !== editor.selection.end.line) { return undefined; }
 
         // Cursor plain link ID
-        let match = editor.document.getWordRangeAtPosition(editor.selection.active, this.idRe);
+        let match = editor.document.getWordRangeAtPosition(editor.selection.active, Re.linkId);
         if (match) {
             editor.selection = new Selection(
                 match.start.translate(0, 1), match.end.translate(0, -1));
