@@ -29,7 +29,7 @@ A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed
     ```
 
 3. Put your cursor on that link and type `Ctrl+Alt+L` again to go back to the heading.
-4. Type `Ctrl+Alt+L` yet again to see all other places the link ID appears.
+4. Type `Ctrl+Alt+L` yet again to visit or list other places the link ID appears.
 
 ## Advanced Topics
 
