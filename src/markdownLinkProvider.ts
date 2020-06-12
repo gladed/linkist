@@ -13,8 +13,8 @@ import { Lazy, lazy } from './util/lazy';
 import { LinkId } from './util/linkId';
 import { MarkdownDocument } from './markdown';
 import MarkdownDocumentProvider from './markdownDocumentProvider';
-import { Re } from './util/Re';
-import { Link } from './Link';
+import { Re } from './util/re';
+import { Link } from './link';
 
 export function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
     return ([] as T[]).concat.apply([], arr);

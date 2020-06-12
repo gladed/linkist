@@ -9,7 +9,7 @@ import {
 } from 'vscode';
 import { camelize } from './util/text';
 import { TextEncoder } from 'util';
-import { Re } from './util/Re';
+import { Re } from './util/re';
 
 
 export class EditorLinkHandler {
