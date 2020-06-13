@@ -8,12 +8,15 @@ import {
 } from 'vscode';
 import MarkdownLinkProvider from './markdownLinkProvider';
 import { EditorLinkHandler } from './editorLinkHandler';
+import { LinkExplorer } from './linkExplorer';
 
 export async function activate(context: ExtensionContext) {
 
     const linkProvider = new MarkdownLinkProvider();
     const editorHandler = new EditorLinkHandler(linkProvider);
+    const linkExplorer = new LinkExplorer();
 
+    window.registerTreeDataProvider('links', linkExplorer);
     context.subscriptions.push(linkProvider);
 
     // Enable the link command

@@ -10,11 +10,9 @@ import {
 } from 'vscode';
 import { Disposable } from './util/disposable';
 import { Lazy, lazy } from './util/lazy';
-import { LinkId } from './util/linkId';
 import { MarkdownDocument } from './markdown';
 import MarkdownDocumentProvider from './markdownDocumentProvider';
-import { Re } from './util/re';
-import { Link } from './link';
+import { Link, LinkId, anyLinkRe, linkIdRe } from './util/link';
 
 export function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
     return ([] as T[]).concat.apply([], arr);
@@ -52,6 +50,7 @@ export default class MarkdownLinkProvider extends Disposable
         private markdownProvider = new MarkdownDocumentProvider()
     ) {
         super();
+    
     }
 
     /** WorkspaceSymbolProvider: Return an unused link ID appropriate for the current date. */
@@ -113,9 +112,8 @@ export default class MarkdownLinkProvider extends Disposable
             for (let index = 0; index < document.lineCount; index++) {
                 let lineText = document.lineAt(index).text;
                 let match;
-                while ((match = Re.anyLink.exec(lineText)) !== null) {
-                    console.log("In " + document.uri.fsPath + " matched " + match[0]);
-                    const linkId = LinkId.decode(match[0].match(Re.linkId)![0].slice(1, -1));
+                while ((match = anyLinkRe.exec(lineText)) !== null) {
+                    const linkId = LinkId.decode(match[0].match(linkIdRe)![0].slice(1, -1));
                     const location = new Location(document.uri,
                         new Range(index, match.index, index, match.index + match[0].length));
                     links.push(new Link(

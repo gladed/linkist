@@ -40,7 +40,17 @@
 				"command": "linkist.link",
 				"title": "Linkist: Link"
 			}
-		]
+		],
+		"views": {
+			"explorer": [
+				{
+					"id": "links",
+					"name": "Links",
+					"icon": "img/icon.svg",
+					"contextualTitle": "Linkist Links"
+				}
+			]
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run compile",
