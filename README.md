@@ -1,4 +1,4 @@
-# Linkist
+# ![Icon](img/icon_20_24.png) Linkist
 
 A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed.linkist) that creates persistent links between markdown documents in your workspace.
 
