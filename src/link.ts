@@ -1,4 +1,4 @@
-import { 
+import {
     Location,
     DocumentLink,
     Range,
@@ -17,12 +17,12 @@ export class Link extends SymbolInformation implements DocumentLink {
     public get range(): Range {
         return this.location.range;
     }
-    
+
     /**
      * The uri this link points to, may not yet be known.
      */
     public target?: Uri;
-    
+
     /**
      * The tooltip text when you hover over this link.
      */
@@ -41,12 +41,12 @@ export class Link extends SymbolInformation implements DocumentLink {
         public linkId: LinkId) {
         super(Link.abbreviate(location, line), SymbolKind.String, '', location);
     }
-    
+
     /** Return true if this link is a "head" (occurs on a markdown heading line). */
     public isHead() {
         return this.line.startsWith('#');
     }
-    
+
     /** Return an abbreviated form of the link, suitable for display in symbol lists. */
     private static abbreviate(location: Location, line: string) {
         if (location.range.start.character < 20) {

@@ -12,7 +12,7 @@ import { EditorLinkHandler } from './editorLinkHandler';
 export async function activate(context: ExtensionContext) {
 
     const linkProvider = new MarkdownLinkProvider();
-    const editorHandler = new EditorLinkHandler();
+    const editorHandler = new EditorLinkHandler(linkProvider);
 
     context.subscriptions.push(linkProvider);
 
@@ -49,7 +49,7 @@ export async function activate(context: ExtensionContext) {
         } else if (editorHandler.visitUri(editor, editor.selection)) {
             // If true, request was launched so do nothing
         } else {
-            const range = await editorHandler.insertLink(editor, (await linkProvider.newLinkId()).text);
+            const range = await editorHandler.insertLink(editor);
             if (range) {
                 editor.selection = new Selection(range.start, range.end);
             }

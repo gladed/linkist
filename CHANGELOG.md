@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.4.5
+
+* Better headings and filenames in multiline extraction
+* If a date like `2020-06-01` is present in link name encode into link id
+
 ## 1.4.4
 
 * Ctrl+Click links in file to follow them to the link ID on a header line.

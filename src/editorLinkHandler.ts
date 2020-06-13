@@ -10,7 +10,7 @@ import {
 import { camelize } from './util/text';
 import { TextEncoder } from 'util';
 import { Re } from './util/re';
-
+import MarkdownLinkProvider from './markdownLinkProvider';
 
 export class EditorLinkHandler {
 
@@ -29,6 +29,8 @@ export class EditorLinkHandler {
 
     prefixedUnlinkedLineRe = new RegExp(this.prefixRe.source + '[^\\[]+');
     prefixLinkRe = new RegExp('(' + this.prefixRe.source + ')?' + this.linkRe.source);
+
+    constructor(private linkProvider: MarkdownLinkProvider) { }
 
     // Given the current selection, find and extract the nearest link ID inside it
     public linkIdNearCursor(editor: TextEditor): string | undefined {
@@ -70,48 +72,50 @@ export class EditorLinkHandler {
      * Find or create a good insertion point for a new tag, add appropriate content,
      * and return a position where the new text may be inserted
      */
-    public async insertLink(editor: TextEditor, link: string) {
+    public async insertLink(editor: TextEditor) {
         const at = editor.selection.active;
         const multiline = editor.selection.active.line !== editor.selection.anchor.line;
         if (multiline) {
-            return await this.handleMultiLine(editor, link);
+            return await this.handleMultiLine(editor);
         } else {
-            return await this.handleSingleLine(editor, link, editor.selection);
+            return await this.handleSingleLine(editor, editor.selection);
         }
     }
 
-    private async handleSingleLine(editor: TextEditor, link: string, range: Range): Promise<Range | undefined> {
+    private async handleSingleLine(editor: TextEditor, range: Range): Promise<Range | undefined> {
         // If there's a link present already, return it
         let linkedRange = this.findLink(editor, range.start);
         if (linkedRange) {
             return linkedRange;
         }
-        return await this.handleEmptyTarget(editor, link, range.start) ||
+        return await this.handleEmptyTarget(editor, range.start) ||
             this.handleHasTarget(editor, range) ||
-            await this.handleNoTarget(editor, link, range.start) ||
-            await this.handleUnlinked(editor, link, range);
+            await this.handleNoTarget(editor, range.start) ||
+            await this.handleUnlinked(editor, range);
     }
 
-    private async handleEmptyTarget(editor: TextEditor, link: string, at: Position): Promise<Range | undefined> {
+    private async handleEmptyTarget(editor: TextEditor, at: Position): Promise<Range | undefined> {
         // `[empty target]()`
         const emptyLink = editor.document.getWordRangeAtPosition(at, this.emptyTargetRe);
         if (!emptyLink) { return; }
 
         const spot = emptyLink.end.translate(0, -1);
+        const linkText = (await this.linkProvider.newLinkId(editor.document.getText(emptyLink))).text;
         await editor.edit(builder => {
-            builder.insert(spot, "^" + link + "^");
+            builder.insert(spot, "^" + linkText + "^");
         });
         return this.findLink(editor, spot);
     }
 
-    private async handleNoTarget(editor: TextEditor, link: string, at: Position): Promise<Range | undefined> {
+    private async handleNoTarget(editor: TextEditor, at: Position): Promise<Range | undefined> {
         // `[no target yet]`
         const unlinked = editor.document.getWordRangeAtPosition(at, this.noTargetRe);
         if (!unlinked) { return; }
 
         const spot = unlinked.end;
+        const linkText = (await this.linkProvider.newLinkId(editor.document.getText(unlinked))).text;
         await editor.edit(editBuilder => {
-            editBuilder.insert(spot, "(^" + link + "^)");
+            editBuilder.insert(spot, "(^" + linkText + "^)");
         });
         return this.findLink(editor, spot);
     }
@@ -139,12 +143,13 @@ export class EditorLinkHandler {
     }
 
     /** Given a selection containing no link, identify a good range to link and insert one. */
-    private async handleUnlinked(editor: TextEditor, link: string, at: Range): Promise<Range | undefined> {
+    private async handleUnlinked(editor: TextEditor, at: Range): Promise<Range | undefined> {
         // Find a range and promote it to a link
         const linkRange: Range = this.findLinkableRange(editor, at);
+        const linkText = (await this.linkProvider.newLinkId(editor.document.getText(at))).text;
         await editor.edit(builder => {
             builder.insert(linkRange.start, "[");
-            builder.insert(linkRange.end, "](^" + link + "^)");
+            builder.insert(linkRange.end, "](^" + linkText + "^)");
         });
         return this.findLink(editor, linkRange.start);
     }
@@ -170,22 +175,20 @@ export class EditorLinkHandler {
         return result;
     }
 
-    private async handleMultiLine(editor: TextEditor, link: string): Promise<Range | undefined> {
+    private async handleMultiLine(editor: TextEditor): Promise<Range | undefined> {
         // Make sure there's a link on the first line
         const origin = editor.selection.start;
-        const titleRange = await this.handleSingleLine(editor, link, new Range(origin, origin));
+        const titleRange = await this.handleSingleLine(editor, new Range(origin, origin));
         if (!titleRange) { return; }
 
         const titleLink = editor.document.getText(titleRange);
         const title = editor.document.getText(titleRange).match(this.linkTitleRe)![0];
         const fileName = camelize(title);
-        const text = editor.document.getText(editor.selection);
+        const text = editor.document.getText(editor.selection).replace(/^\#+/,'#');
         const destUri = await this.createTargetFile(editor.document.uri, fileName, text);
         if (!destUri) {
-            // window.showWarningMessage("Could not create destination file");
+            // Could not create destination file
             return;
-        } else {
-            // window.showInformationMessage("Created destination file " + destUri.fsPath);
         }
         await editor.edit(builder => {
             builder.delete(editor.selection);
