@@ -34,21 +34,23 @@ export async function activate(context: ExtensionContext) {
     // Allow symbol search
     disposer.register(languages.registerWorkspaceSymbolProvider(new LinkSymbolProvider(linker)));
 
+    // CTRL+Click to bounce between definitions. If there are 3+ it opens up a reference peek view
+    disposer.register(languages.registerDefinitionProvider(markdownSelector, new MarkdownDefinitionProvider(linker)));
+
+    // This works but you have to type shift+F12 to get there
+    disposer.register(languages.registerReferenceProvider(markdownSelector, new MarkdownReferenceProvider(linker)));
+
+    // Things we don't do:
+
     // Provide symbols on a per-document basis. Not needed because we have a workspace symbol provider
     // disposer.register(languages.registerDocumentSymbolProvider(markdownSelector, ...));
 
     // This underlines the whole link but breaks CTRL+CLICK on # head because it links to itself.
     // disposer.register(languages.registerDocumentLinkProvider(markdown, ...));
 
-    // CTRL+Click to bounce between definitions. If there are 3+ it opens up a reference peek view
-    disposer.register(languages.registerDefinitionProvider(markdownSelector, new MarkdownDefinitionProvider(linker)));
-
     // Nice if you want to show metadata about a link, but also distracting and
     // the link tree will do a better job contextualizing the current link.
     // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
-
-    // This works but you have to type shift+F12 to get there
-    disposer.register(languages.registerReferenceProvider(markdownSelector, new MarkdownReferenceProvider(linker)));
 
     function setupLinkExplorer() {
         const linkExplorer = new LinkTree();

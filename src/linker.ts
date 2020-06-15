@@ -7,27 +7,27 @@ import {
 import { Disposable } from './util/disposable';
 import { Lazy, lazy } from './util/lazy';
 import { MarkdownDocument } from './markdown';
-import MarkdownDocumentProvider from './markdownDocumentProvider';
+import MarkdownScanner from './markdown';
 import { Link, LinkId, linkIdRe, prefixedAnyLinkRe, markdownPrefixRe } from './util/link';
 import { textToDate } from './util/date';
 
-/** A class that delivers links upon request. */
+/** Scans for {@link Link}s in markdown documents. */
 export default class Linker extends Disposable {
 
     private _cache = lazy(async () => {
         let cache = new Map<string, Lazy<Link[]>>();
 
         // Initialize the cache and watch for document changes anywhere
-        await this.markdownProvider.forEach(doc => {
+        await this.scanner.forEach(doc => {
             cache.set(doc.uri.fsPath, this.scan(doc));
             this.refreshLinks();
         });
-        this.register(this.markdownProvider.onDidDeleteDocument(deleted => {
+        this.register(this.scanner.onDidDeleteDocument(deleted => {
             this.invalidateLinks(cache.get(deleted.fsPath)?.value);
             cache.delete(deleted.fsPath);
             this.refreshLinks();
         }));
-        this.register(this.markdownProvider.onDidUpdateDocument(updated => {
+        this.register(this.scanner.onDidUpdateDocument(updated => {
             this.invalidateLinks(cache.get(updated.uri.fsPath)?.value);
             cache.set(updated.uri.fsPath, this.scan(updated));
             this.refreshLinks();
@@ -40,18 +40,17 @@ export default class Linker extends Disposable {
 
     /**
      * A map of markdown resource locations to lazily-evaluated lists of links.
-     * Note: string is used instead of Uri for accurate comparisons.
+     * Note: string is used because Uri's do not make stable map keys.
      */
     private get cache(): Promise<Map<string, Lazy<Link[]>>> {
         return this._cache.value;
     }
 
-    public constructor(
-        private markdownProvider = new MarkdownDocumentProvider()
-    ) {
+    public constructor(private scanner = new MarkdownScanner()) {
         super();
     }
 
+    /** Wipe out all knowledge of {@param links} so they can be repopulated. */
     private invalidateLinks(links: Link[] | undefined) {
         for (let link of links ?? []) {
             this.linkMap.delete(link.linkId.text);

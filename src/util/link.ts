@@ -1,10 +1,8 @@
 import {
     Location,
-    DocumentLink,
     Range,
     SymbolInformation,
-    SymbolKind,
-    Uri
+    SymbolKind
 } from 'vscode';
 
 /** Encoding alphabet for link IDs. */
@@ -98,7 +96,7 @@ export class LinkId {
 }
 
 /** A specific instance where a link ID was found. */
-export class Link extends SymbolInformation implements DocumentLink {
+export class Link extends SymbolInformation {
     /**
      * The range where this link (either markdown or standalone) is found
      */
@@ -107,17 +105,7 @@ export class Link extends SymbolInformation implements DocumentLink {
     }
 
     /**
-     * The uri this link points to, may not yet be known.
-     */
-    public target?: Uri;
-
-    /**
-     * The tooltip text when you hover over this link.
-     */
-    public tooltip?: string;
-
-    /**
-     * The lable associated with this link.
+     * The label (e.g. `[label](^...^)`) associated with this link, if any
      */
     public label: string | undefined;
 
