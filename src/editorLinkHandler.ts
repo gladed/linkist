@@ -9,28 +9,22 @@ import {
 } from 'vscode';
 import { camelize } from './util/text';
 import { TextEncoder } from 'util';
-import MarkdownLinkProvider from './markdownLinkProvider';
-import { linkIdRe } from './util/link';
+import Linker from './linker';
+import { linkIdRe, markdownLinkRe, markdownPrefixRe, markdownLinkTitleRe } from './util/link';
 
 export class EditorLinkHandler {
 
-    /** The [title] part of a markdown link */
-    linkTitleRe = /\[[^\\[]+\]/;
-    /** The [whole](link) */
-    linkRe = new RegExp(this.linkTitleRe.source + '\\(' + linkIdRe.source + '\\)');
-    /** The prefix part of a markdown line including headings and bullets. */
-    prefixRe = new RegExp(/^ *(\#+|[0-9]+\.|[\*-]( ?\[.?\])?) */);
     /** An optionally prefixed link with no target attached. */
-    noTargetRe = new RegExp('(' + this.prefixRe.source + ')?\\[[^\\]]{2,}\\]');
+    noTargetRe = new RegExp('(' + markdownPrefixRe.source + ')?\\[[^\\]]{2,}\\]');
     /** An optionally prefixed link with an empty target. */
     emptyTargetRe = new RegExp(this.noTargetRe.source + '\\(\\)');
     /** An optionally prefixed link containing ANY target. */
     anyTargetRe = new RegExp(this.noTargetRe.source + '\\([^\\)]+\\)');
 
-    prefixedUnlinkedLineRe = new RegExp(this.prefixRe.source + '[^\\[]+');
-    prefixLinkRe = new RegExp('(' + this.prefixRe.source + ')?' + this.linkRe.source);
+    prefixedUnlinkedLineRe = new RegExp(markdownPrefixRe.source + '[^\\[]+');
+    prefixLinkRe = new RegExp('(' + markdownPrefixRe.source + ')?' + markdownLinkRe.source);
 
-    constructor(private linkProvider: MarkdownLinkProvider) { }
+    constructor(private linker: Linker) { }
 
     // Given the current selection, find and extract the nearest link ID inside it
     public linkIdNearCursor(editor: TextEditor): string | undefined {
@@ -55,11 +49,11 @@ export class EditorLinkHandler {
     }
 
     /** Return the range around JUST the markdown link, without any prefix. */
-    private findLink(editor: TextEditor, position: Position): Range | undefined {
+    private findMarkdownLink(editor: TextEditor, position: Position): Range | undefined {
         const matchRange = editor.document.getWordRangeAtPosition(position, this.prefixLinkRe);
         if (!matchRange) { return undefined; }
 
-        const prefixMatch = editor.document.getText(matchRange).match(this.prefixRe);
+        const prefixMatch = editor.document.getText(matchRange).match(markdownPrefixRe);
         if (prefixMatch) {
             return new Range(matchRange.start.translate(0, prefixMatch[0].length),
                 matchRange.end);
@@ -84,7 +78,7 @@ export class EditorLinkHandler {
 
     private async handleSingleLine(editor: TextEditor, range: Range): Promise<Range | undefined> {
         // If there's a link present already, return it
-        let linkedRange = this.findLink(editor, range.start);
+        let linkedRange = this.findMarkdownLink(editor, range.start);
         if (linkedRange) {
             return linkedRange;
         }
@@ -100,11 +94,11 @@ export class EditorLinkHandler {
         if (!emptyLink) { return; }
 
         const spot = emptyLink.end.translate(0, -1);
-        const linkText = (await this.linkProvider.newLinkId(editor.document.getText(emptyLink))).text;
+        const linkText = (await this.linker.newLinkId(editor.document.getText(emptyLink))).text;
         await editor.edit(builder => {
             builder.insert(spot, "^" + linkText + "^");
         });
-        return this.findLink(editor, spot);
+        return this.findMarkdownLink(editor, spot);
     }
 
     private async handleNoTarget(editor: TextEditor, at: Position): Promise<Range | undefined> {
@@ -113,11 +107,11 @@ export class EditorLinkHandler {
         if (!unlinked) { return; }
 
         const spot = unlinked.end;
-        const linkText = (await this.linkProvider.newLinkId(editor.document.getText(unlinked))).text;
+        const linkText = (await this.linker.newLinkId(editor.document.getText(unlinked))).text;
         await editor.edit(editBuilder => {
             editBuilder.insert(spot, "(^" + linkText + "^)");
         });
-        return this.findLink(editor, spot);
+        return this.findMarkdownLink(editor, spot);
     }
 
     public handleHasTarget(editor: TextEditor, at: Range): Range | undefined {
@@ -128,6 +122,7 @@ export class EditorLinkHandler {
         return undefined;
     }
 
+    /** If there is a link of any kind anywhere around {@param at} then open its target. */
     public visitUri(editor: TextEditor, at: Range): boolean {
         const alreadyLinked = editor.document.getWordRangeAtPosition(at.start, this.anyTargetRe);
         if (!alreadyLinked) { return false; }
@@ -146,12 +141,12 @@ export class EditorLinkHandler {
     private async handleUnlinked(editor: TextEditor, at: Range): Promise<Range | undefined> {
         // Find a range and promote it to a link
         const linkRange: Range = this.findLinkableRange(editor, at);
-        const linkText = (await this.linkProvider.newLinkId(editor.document.getText(at))).text;
+        const linkText = (await this.linker.newLinkId(editor.document.getText(at))).text;
         await editor.edit(builder => {
             builder.insert(linkRange.start, "[");
             builder.insert(linkRange.end, "](^" + linkText + "^)");
         });
-        return this.findLink(editor, linkRange.start);
+        return this.findMarkdownLink(editor, linkRange.start);
     }
 
     private findLinkableRange(editor: TextEditor, near: Range): Range {
@@ -163,7 +158,7 @@ export class EditorLinkHandler {
             if (prefixRange) {
                 const lineRange = editor.document.lineAt(prefixRange.start.line).range;
                 const start = lineRange.start.translate(0,
-                    editor.document.getText(prefixRange).match(this.prefixRe)![0].length);
+                    editor.document.getText(prefixRange).match(markdownPrefixRe)![0].length);
                 result = new Range(start, lineRange.end);
             } else {
                 result = editor.document.getWordRangeAtPosition(near.start);
@@ -182,7 +177,7 @@ export class EditorLinkHandler {
         if (!titleRange) { return; }
 
         const titleLink = editor.document.getText(titleRange);
-        const title = editor.document.getText(titleRange).match(this.linkTitleRe)![0];
+        const title = editor.document.getText(titleRange).match(markdownLinkTitleRe)![0];
         const fileName = camelize(title);
         const text = editor.document.getText(editor.selection).replace(/^\#+/,'#');
         const destUri = await this.createTargetFile(editor.document.uri, fileName, text);

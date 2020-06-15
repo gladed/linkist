@@ -46,6 +46,7 @@
 				{
 					"id": "links",
 					"name": "Links",
+					"when": "markdownLinksEnabled",
 					"icon": "img/icon.svg",
 					"contextualTitle": "Linkist Links"
 				}

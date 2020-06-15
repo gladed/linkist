@@ -1,33 +1,106 @@
 import {
     ExtensionContext,
+    Location,
     Selection,
     SymbolInformation,
     commands,
     languages,
     window,
+    workspace,
 } from 'vscode';
-import MarkdownLinkProvider from './markdownLinkProvider';
+import Linker from './linker';
 import { EditorLinkHandler } from './editorLinkHandler';
-import { LinkExplorer } from './linkExplorer';
+import { LinkTree } from './linkTree';
+import { Disposer } from './util/disposable';
+import {
+    LinkSymbolProvider,
+    MarkdownDefinitionProvider,
+    MarkdownReferenceProvider
+} from './provider';
+
+const markdownSelector = { scheme: 'file', language: 'markdown' };
 
 export async function activate(context: ExtensionContext) {
 
-    const linkProvider = new MarkdownLinkProvider();
-    const editorHandler = new EditorLinkHandler(linkProvider);
-    const linkExplorer = new LinkExplorer();
+    const disposer = new Disposer();
+    context.subscriptions.push(disposer);
 
-    window.registerTreeDataProvider('links', linkExplorer);
-    context.subscriptions.push(linkProvider);
+    const linker = disposer.register(new Linker());
+    const editorHandler = new EditorLinkHandler(linker);
 
     // Enable the link command
-    context.subscriptions.push(commands.registerCommand('linkist.link', async () => {
+    disposer.register(commands.registerCommand('linkist.link', handleLinkCommand));
+
+    // Allow symbol search
+    disposer.register(languages.registerWorkspaceSymbolProvider(new LinkSymbolProvider(linker)));
+
+    // Provide symbols on a per-document basis. Not needed because we have a workspace symbol provider
+    // disposer.register(languages.registerDocumentSymbolProvider(markdownSelector, ...));
+
+    // This underlines the whole link but breaks CTRL+CLICK on # head because it links to itself.
+    // disposer.register(languages.registerDocumentLinkProvider(markdown, ...));
+
+    // CTRL+Click to bounce between definitions. If there are 3+ it opens up a reference peek view
+    disposer.register(languages.registerDefinitionProvider(markdownSelector, new MarkdownDefinitionProvider(linker)));
+
+    // Nice if you want to show metadata about a link, but also distracting and
+    // the link tree will do a better job contextualizing the current link.
+    // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
+
+    // This works but you have to type shift+F12 to get there
+    disposer.register(languages.registerReferenceProvider(markdownSelector, new MarkdownReferenceProvider(linker)));
+
+    function setupLinkExplorer() {
+        const linkExplorer = new LinkTree();
+
+        // Provide data to the explorer pane
+        disposer.register(window.registerTreeDataProvider('links', linkExplorer));
+
+        // When a link is selected (e.g. from LinkTree) specify the target selection range
+        disposer.register(commands.registerCommand('extension.openLinkSelection', (location: Location) => {
+            window.showTextDocument(location.uri, { selection: location.range });
+        }));
+
+        async function refreshLinks() {
+            if (window.activeTextEditor &&
+                window.activeTextEditor.document.uri.scheme === 'file' &&
+                window.activeTextEditor.document.languageId === 'markdown') {
+                    linkExplorer.links = await linker.linksIn(window.activeTextEditor.document.uri);
+            }
+        }
+
+        // Enable/disable the explorer pane when the editor changes.
+        async function updateLinkExplorerVisibility() {
+            if (window.activeTextEditor) {
+                if (window.activeTextEditor.document.uri.scheme === 'file') {
+                    const enabled = window.activeTextEditor.document.languageId === 'markdown';
+                    if (enabled) {
+                        refreshLinks();
+                    }
+                    commands.executeCommand('setContext', 'markdownLinksEnabled', enabled);
+                }
+            } else {
+                commands.executeCommand('setContext', 'markdownLinksEnabled', false);
+            }
+        }
+        disposer.register(window.onDidChangeActiveTextEditor(updateLinkExplorerVisibility));
+        disposer.register(workspace.onDidChangeTextDocument(e => {
+            if (e.document.uri.fsPath === window.activeTextEditor?.document.uri.fsPath) {
+                refreshLinks();
+            }
+        }));
+        updateLinkExplorerVisibility();
+    }
+
+    async function handleLinkCommand() {
         const editor = window.activeTextEditor;
         if (!editor) {
             return;
         }
         const linkId = editorHandler.linkIdNearCursor(editor);
         if (linkId) {
-            let links = await linkProvider.lookupLinks(linkId);
+            let links = await linker.lookupLinks(linkId);
+
             if (links.length === 2) {
                 let jumpTo = links[0];
                 if (jumpTo.location.range.start.line === editor.selection.start.line) {
@@ -57,25 +130,7 @@ export async function activate(context: ExtensionContext) {
                 editor.selection = new Selection(range.start, range.end);
             }
         }
-        // TODO: This is a cool thing we can do with links but we will need to update diagnostics whenever
-        // the file changes so we really need something like a MarkdownDiagnosticsProvider.
-
-        // const noLink = new vscode.Diagnostic(
-        // 	new vscode.Range(editor.selection.start, editor.selection.end),
-        // 	"This link ID appears nowhere else in the project.");
-        // // TODO: Should be a warning token or something
-        // const collection = vscode.languages.createDiagnosticCollection();
-        // const diagnostics: vscode.Diagnostic[] = [noLink];
-        // collection.set(editor.document.uri, diagnostics);
-    }));
-
-    // Allow symbol linking
-    context.subscriptions.push(languages.registerWorkspaceSymbolProvider(linkProvider));
-
-    // Allow link clicking
-    const markdownSelector = { scheme: 'file', language: 'markdown' };
-    context.subscriptions.push(
-        languages.registerDocumentLinkProvider(markdownSelector, linkProvider));
+    }
 }
 
 export function deactivate() { }

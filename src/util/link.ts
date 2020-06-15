@@ -12,10 +12,24 @@ const alphabet = 'j6EpuN2TkFbJBVSCfhnarZ95W8KARmwUytiqQgcYxsX3D7dM4ePGzHv';
 
 /** A standalone link ID like `^....^`. */
 export const linkIdRe = /\^[A-Za-z0-9]{4,7}\^/g;
-/** A markdown-delimited link containing a link ID like `[text](^....^)`. */
-export const markdownLinkRe = new RegExp(/\[[^\]]+\]\(/.source + linkIdRe.source + '\\)');
+
+/** The prefix part of a markdown line including headings and bullets. */
+export const markdownPrefixRe = new RegExp(/^ *(\#+ +|[0-9]+\. |[\*-] (\[.?\])?) */);
+
+/** The [title] part of a markdown link */
+export const markdownLinkTitleRe = /\[[^\\[]+\]/;
+
+/**
+ * A markdown-delimited link containing a link ID like `[text](^....^)` with text as the first group.
+ */
+export const markdownLinkRe = new RegExp(/\[([^\]]+)\]\(/.source + linkIdRe.source + '\\)');
+
 /** Either a markdown-delimited link or a standalone link ID, globally matched. */
 export const anyLinkRe = new RegExp('(' + markdownLinkRe.source + ')|(' + linkIdRe.source + ')', 'g');
+
+/** Optionally prefixed form of any link (global). */
+export const prefixedAnyLinkRe = new RegExp('(' + markdownPrefixRe.source + ')?((' +
+    markdownLinkRe.source + ')|(' + linkIdRe.source + '))', 'g');
 
 /**
  * A link identifier encoding a date and an ordinal into a short, random-looking string.
@@ -86,7 +100,7 @@ export class LinkId {
 /** A specific instance where a link ID was found. */
 export class Link extends SymbolInformation implements DocumentLink {
     /**
-     * The range where this link is found
+     * The range where this link (either markdown or standalone) is found
      */
     public get range(): Range {
         return this.location.range;
@@ -102,18 +116,36 @@ export class Link extends SymbolInformation implements DocumentLink {
      */
     public tooltip?: string;
 
+    /**
+     * The lable associated with this link.
+     */
+    public label: string | undefined;
+
     constructor(
         /**
          * Location of the complete `[markdown](^...^)` link or just `^...^` if standalone
          */
         location: Location,
+
         /**
          * The entire line of text on which this link was found
          */
         public line: string,
+
         /** The linkId found in {@param location}. */
-        public linkId: LinkId) {
+        public linkId: LinkId,
+
+        /** The prefix, if any. */
+        public prefix: string | undefined
+    ) {
+        /** Set an abbreviated form of the name. */
         super(Link.abbreviate(location, line), SymbolKind.String, '', location);
+
+        const markdownMatch = line.substring(location.range.start.character, location.range.end.character).match(markdownLinkRe);
+        if (markdownMatch) {
+            this.label = markdownMatch[1];
+        }
+
     }
 
     /** Return true if this link is a "head" (occurs on a markdown heading line). */

@@ -1,5 +1,5 @@
 import * as assert from 'assert';
-import { LinkId } from '../../../util/linkId';
+import { LinkId } from '../../../util/link';
 
 suite('LinkId', () => {
     test('should create links', () => {

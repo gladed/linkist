@@ -31,3 +31,11 @@ export abstract class Disposable {
         }
     }
 }
+
+/** A standalone object that can manage disposable objects, which is also itself disposable. */
+export class Disposer extends Disposable {
+    /** Add and return a {@param value} to be disposed when this object is disposed. */
+    public register<T extends vscode.Disposable>(value: T): T {
+        return super.register(value);
+    }
+}
