@@ -93,6 +93,9 @@ export class LinkId {
     public equals(other: LinkId): boolean {
         return this.text === other.text;
     }
+    public toString(): string {
+        return this.text + "/" + this.date.toISOString().slice(0, 10) + "#" + this.ordinal;
+    }
 }
 
 /** A specific instance where a link ID was found. */
@@ -107,24 +110,24 @@ export class Link extends SymbolInformation {
     /**
      * The label (e.g. `[label](^...^)`) associated with this link, if any
      */
-    public label: string | undefined;
+    public label?: string;
+
 
     constructor(
-        /**
-         * Location of the complete `[markdown](^...^)` link or just `^...^` if standalone
-         */
+        /** Location of the complete `[markdown](^...^)` link or just `^...^` if standalone */
         location: Location,
 
-        /**
-         * The entire line of text on which this link was found
-         */
+        /** The entire line of text on which this link was found */
         public line: string,
 
         /** The linkId found in {@param location}. */
         public linkId: LinkId,
 
-        /** The prefix, if any. */
-        public prefix: string | undefined
+        /** The markdown prefix characters associated with this link, if any. */
+        public prefix?: string,
+
+        /** This link's "parent", e.g. the higher-level `# heading` under which it appears, if any. */
+        public parent?: Link
     ) {
         /** Set an abbreviated form of the name. */
         super(Link.abbreviate(location, line), SymbolKind.String, '', location);
@@ -133,7 +136,10 @@ export class Link extends SymbolInformation {
         if (markdownMatch) {
             this.label = markdownMatch[1];
         }
+    }
 
+    public toMarkdown() {
+        return '['  + (this.label ? this.label : "???") + '](^' + this.linkId.text + '^)';
     }
 
     /** Return true if this link is a "head" (occurs on a markdown heading line). */
@@ -149,5 +155,11 @@ export class Link extends SymbolInformation {
         else {
             return line.substring(location.range.start.character - 10, location.range.end.character);
         }
+    }
+
+    public toString() {
+        return "Link(uri=" + this.location.uri.fsPath + ":" + this.location.range.start.line +
+            "#" + this.location.range.start.character + "-" + this.location.range.end.character + " " + this.linkId.toString() +
+            " prefix=" + this.prefix + " parent=" + this.parent?.linkId.text + ")";
     }
 }

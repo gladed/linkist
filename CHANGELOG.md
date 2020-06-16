@@ -2,7 +2,9 @@
 
 ## 1.4.6
 
-
+* Multiline extraction includes "From" link if appropriate.
+* Enabled definitions and references: Ctrl+Click and F12 open the "peek" view.
+* Use "Peek References" (F12) instead of symbol search (Ctrl+T) to show link targets.
 
 ## 1.4.5
 

@@ -119,7 +119,7 @@ export async function activate(context: ExtensionContext) {
                     let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
                     await window.showTextDocument(jumpTo.location.uri, {selection: jumpTo.location.range, viewColumn: viewColumn});
                 } else {
-                    commands.executeCommand("workbench.action.showAllSymbols");
+                    commands.executeCommand("editor.action.referenceSearch.trigger");
                 }
             } else {
                 window.showWarningMessage("'" + linkId + "' does not link to anything");

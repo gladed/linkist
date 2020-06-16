@@ -15,6 +15,7 @@ export class LinkTree implements TreeDataProvider<LinkItem> {
     get links(): Link[] | undefined {
         return this._links;
     }
+
     set links(links: Link[] | undefined) {
         // The root changed so update the tree
         this._links = links;

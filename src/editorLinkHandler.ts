@@ -176,10 +176,16 @@ export class EditorLinkHandler {
         const titleRange = await this.handleSingleLine(editor, new Range(origin, origin));
         if (!titleRange) { return; }
 
-        const titleLink = editor.document.getText(titleRange);
+        const titleLinkText = editor.document.getText(titleRange);
         const title = editor.document.getText(titleRange).match(markdownLinkTitleRe)![0];
         const fileName = camelize(title);
-        const text = editor.document.getText(editor.selection).replace(/^\#+/,'#');
+        let text = editor.document.getText(editor.selection).replace(/^\#+/,'#');
+
+        const titleLink = await this.linker.linkAt(editor.document.uri, titleRange.start);
+        if (titleLink?.parent) {
+            text = text.replace(/.*\n/, '$&\nFrom: ' + titleLink.parent.toMarkdown() + '\n\n');
+        }
+
         const destUri = await this.createTargetFile(editor.document.uri, fileName, text);
         if (!destUri) {
             // Could not create destination file
@@ -187,7 +193,7 @@ export class EditorLinkHandler {
         }
         await editor.edit(builder => {
             builder.delete(editor.selection);
-            builder.insert(origin, "* " + titleLink);
+            builder.insert(origin, "* " + titleLinkText);
         });
         return titleRange;
     }

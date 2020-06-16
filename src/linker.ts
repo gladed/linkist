@@ -133,9 +133,18 @@ export default class Linker extends Disposable {
     private scan(document: MarkdownDocument): Lazy<Link[]> {
         return lazy(() => {
             const links: Link[] = [];
+            let parent: Link | undefined;
+
             for (let index = 0; index < document.lineCount; index++) {
                 let lineText = document.lineAt(index).text;
                 let match;
+
+                // For any heading line, roll parent back to a link above it
+                const depth = headDepth(lineText);
+                while (parent?.prefix && depth && depth <= parent.prefix.length) {
+                    parent = parent.parent;
+                }
+
                 while ((match = prefixedAnyLinkRe.exec(lineText)) !== null) {
                     const linkId = LinkId.decode(match[0].match(linkIdRe)![0].slice(1, -1));
                     let location, prefix, prefixMatch;
@@ -148,8 +157,11 @@ export default class Linker extends Disposable {
                         location = new Location(document.uri,
                             new Range(index, match.index, index, match.index + match[0].length));
                     }
-                    // const noPrefixMatch = anyLinkRe.exec(match[0])!;
-                    links.push(new Link(location, lineText, linkId, prefix));
+                    const newLink = new Link(location, lineText, linkId, prefix, parent);
+                    links.push(newLink);
+                    if (newLink.prefix && headDepth(newLink.prefix)) {
+                        parent = newLink;
+                    }
                 }
             }
             return links;
@@ -160,4 +172,9 @@ export default class Linker extends Disposable {
 /** For an array of arrays return a single-depth array. */
 function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
     return ([] as T[]).concat.apply([], arr);
+}
+
+function headDepth(text: string): number | undefined {
+    let match = text.match(/^\#+/);
+    return match ? match[0].trim().length : undefined;
 }
