@@ -8,12 +8,13 @@ import {
 } from 'vscode';
 import Linker from './linker';
 
+/** Tell VSCode how to find the "definition" for a link id. */
 export class MarkdownDefinitionProvider implements DefinitionProvider {
     constructor(public linkProvider: Linker) { }
     async provideDefinition(document: TextDocument, position: Position, _: CancellationToken) {
         const sourceLink = await this.linkProvider.linkAt(document.uri, position);
         if (sourceLink) {
-            const references = await this.linkProvider.linksFor(sourceLink.linkId.text);
+            const references = this.linkProvider.linksFor(sourceLink.linkId.text);
             if (references) {
                 for (let target of references) {
                     if (target.isHead()) {
@@ -28,6 +29,7 @@ export class MarkdownDefinitionProvider implements DefinitionProvider {
     }
 }
 
+/** Tell VSCode how to find references to the current link id. */
 export class MarkdownReferenceProvider implements ReferenceProvider {
     constructor(public linkProvider: Linker) { }
     async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, _: CancellationToken) {

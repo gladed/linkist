@@ -46,7 +46,7 @@ export default class Linker extends Disposable {
         return this._cache.value;
     }
 
-    public constructor(private scanner = new MarkdownScanner()) {
+    public constructor(private scanner: PublicInterfaceOf<MarkdownScanner> = new MarkdownScanner()) {
         super();
     }
 

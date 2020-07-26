@@ -6,7 +6,7 @@ import {
 import { Disposable } from './util/disposable';
 
 // An interface for a line in the document that matches the return from [TextDocument.lineAt]
-interface MarkdownLine {
+export interface MarkdownLine {
     text: string;
 }
 
