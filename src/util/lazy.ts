@@ -1,4 +1,3 @@
-
 /** A value that is only created when accessed. */
 export interface Lazy<T> {
     readonly value: T;

@@ -13,10 +13,9 @@ import { EditorLinkHandler } from './editorLinkHandler';
 import { LinkTree } from './linkTree';
 import { Disposer } from './util/disposable';
 import {
-    LinkSymbolProvider,
     MarkdownDefinitionProvider,
     MarkdownReferenceProvider
-} from './provider';
+} from './providers';
 
 const markdownSelector = { scheme: 'file', language: 'markdown' };
 
@@ -31,16 +30,17 @@ export async function activate(context: ExtensionContext) {
     // Enable the link command
     disposer.register(commands.registerCommand('linkist.link', handleLinkCommand));
 
-    // Allow symbol search
-    disposer.register(languages.registerWorkspaceSymbolProvider(new LinkSymbolProvider(linker)));
 
     // CTRL+Click to bounce between definitions. If there are 3+ it opens up a reference peek view
     disposer.register(languages.registerDefinitionProvider(markdownSelector, new MarkdownDefinitionProvider(linker)));
 
-    // This works but you have to type shift+F12 to get there
+    // This works but you have to type F12 or shift+F12 or CTRL+Click to get there
     disposer.register(languages.registerReferenceProvider(markdownSelector, new MarkdownReferenceProvider(linker)));
 
     // Things we don't do:
+
+    // Don't do symbol searches, markdown plugin already handles these for # lines
+    // disposer.register(languages.registerWorkspaceSymbolProvider(new LinkSymbolProvider(linker)));
 
     // Provide symbols on a per-document basis. Not needed because we have a workspace symbol provider
     // disposer.register(languages.registerDocumentSymbolProvider(markdownSelector, ...));

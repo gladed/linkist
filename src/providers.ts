@@ -4,23 +4,9 @@ import {
     Position,
     ReferenceContext,
     TextDocument,
-    WorkspaceSymbolProvider,
-    SymbolInformation,
     ReferenceProvider,
 } from 'vscode';
 import Linker from './linker';
-
-export class LinkSymbolProvider implements WorkspaceSymbolProvider {
-    constructor(public linker: Linker) { }
-
-    /** WorkspaceSymbolProvider: Given a query, return matching symbols. */
-    public async provideWorkspaceSymbols(query: string): Promise<SymbolInformation[]> {
-        return this.linker.lookupLinks(query).then(links =>
-            // Skip TOC lines because built-in "markdown-language-features" finds these
-            links.filter(link => !link.name.startsWith("#")));
-    }
-
-}
 
 export class MarkdownDefinitionProvider implements DefinitionProvider {
     constructor(public linkProvider: Linker) { }
