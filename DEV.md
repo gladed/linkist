@@ -3,6 +3,7 @@
 ## Development Environment
 * `sudo npm install fs-extra`
 * VSCode itself, open this repo, push F5
+* Update packages with `npm update --save`
 * Read [VS Code API docs](https://code.visualstudio.com/api/references/vscode-api)
 * [Document your APIs](https://typedoc.org/guides/doccomments/)
 * Write [Unit Tests](https://code.visualstudio.com/api/working-with-extensions/testing-extension)
@@ -27,8 +28,9 @@ npm run vscode:prepublish
 # Commit all changes
 git commit -m "Updated changelog"
 
-# Publish!
+# Publish to MS and open-vsx
 vsce publish [patch | minor | major]
+npx ovsx publish -p $(cat .open-vsx-token)
 
 # Tag
 git push --tags

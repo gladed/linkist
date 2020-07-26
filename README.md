@@ -1,5 +1,7 @@
 # ![Icon](img/icon_20_24.png) Linkist
 
+https://open-vsx.org/extension/gladed/linkist
+
 A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed.linkist) that creates persistent links between markdown documents in your workspace.
 
 ## Install
@@ -37,3 +39,4 @@ A [VS Code extension](https://marketplace.visualstudio.com/items?itemName=gladed
 * Read the [Change Log](CHANGELOG.md).
 * Read [Frequently Asked Questions](https://github.com/gladed/linkist/wiki/FAQ).
 * Select multiple lines (starting with a heading) and `Ctrl+Alt+L` will extract that section into a new file, replacing it with a link.
+* For VSCodium 1.46+ users, this extension is also available at [Open VSX](https://open-vsx.org/extension/gladed/linkist).

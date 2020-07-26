@@ -10,7 +10,7 @@ interface MarkdownLine {
     text: string;
 }
 
-// A simple interface that could match a TextDocument, or a raw buffer
+/** A markdown document similar to [TextDocument], or a raw buffer */
 export interface MarkdownDocument {
     readonly uri: Uri;
     readonly lineCount: number;
