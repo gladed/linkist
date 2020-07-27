@@ -17,7 +17,7 @@
 # Clean up spaces
 find src -name "*.ts" -exec bash -c 'expand -it 4 {} | sed -E "s/[[:space:]]*$//" | sponge {}' \;
 
-# If needed
+# If needed (https://dev.azure.com/gladed/, https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
 vsce login gladed         
 
 # Validate
