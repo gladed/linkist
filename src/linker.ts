@@ -154,9 +154,9 @@ export default class Linker extends Disposable {
                 let lineText = document.lineAt(index).text;
                 let match;
 
-                // For any heading line, roll parent back to a link above it
+                // For any heading line, roll parent back to a link above it if possible
                 const depth = headDepth(lineText);
-                while (parent?.prefix && depth && depth <= parent.prefix.length) {
+                while (parent?.prefix && depth && depth <= parent.prefix.length && parent.parent) {
                     parent = parent.parent;
                 }
 
