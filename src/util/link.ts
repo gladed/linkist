@@ -112,7 +112,6 @@ export class Link extends SymbolInformation {
      */
     public label?: string;
 
-
     constructor(
         /** Location of the complete `[markdown](^...^)` link or just `^...^` if standalone */
         location: Location,

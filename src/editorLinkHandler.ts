@@ -66,17 +66,21 @@ export class EditorLinkHandler {
      * Find or create a good insertion point for a new tag, add appropriate content,
      * and return a position where the new text may be inserted
      */
-    public async insertLink(editor: TextEditor) {
+    public async insertLink(editor: TextEditor, linkText: string | undefined) {
         const at = editor.selection.active;
         const multiline = editor.selection.active.line !== editor.selection.anchor.line;
         if (multiline) {
             return await this.handleMultiLine(editor);
         } else {
-            return await this.handleSingleLine(editor, editor.selection);
+            return await this.handleSingleLine(editor, editor.selection, linkText);
         }
     }
 
-    private async handleSingleLine(editor: TextEditor, range: Range): Promise<Range | undefined> {
+    private async handleSingleLine(
+        editor: TextEditor,
+        range: Range,
+        linkText: string | undefined = undefined
+    ): Promise<Range | undefined> {
         // If there's a link present already, return it
         let linkedRange = this.findMarkdownLink(editor, range.start);
         if (linkedRange) {
@@ -84,7 +88,7 @@ export class EditorLinkHandler {
         }
         return await this.handleEmptyTarget(editor, range.start) ||
             this.handleHasTarget(editor, range) ||
-            await this.handleNoTarget(editor, range.start) ||
+            await this.handleNoTarget(editor, range.start, linkText) ||
             await this.handleUnlinked(editor, range);
     }
 
@@ -101,15 +105,15 @@ export class EditorLinkHandler {
         return this.findMarkdownLink(editor, spot);
     }
 
-    private async handleNoTarget(editor: TextEditor, at: Position): Promise<Range | undefined> {
+    private async handleNoTarget(editor: TextEditor, at: Position, linkText: string | undefined): Promise<Range | undefined> {
         // `[no target yet]`
         const unlinked = editor.document.getWordRangeAtPosition(at, this.noTargetRe);
         if (!unlinked) { return; }
 
         const spot = unlinked.end;
-        const linkText = (await this.linker.newLinkId(editor.document.getText(unlinked))).text;
+        const linkTextToInsert = linkText ? linkText : (await this.linker.newLinkId(editor.document.getText(unlinked))).text;
         await editor.edit(editBuilder => {
-            editBuilder.insert(spot, "(^" + linkText + "^)");
+            editBuilder.insert(spot, "(^" + linkTextToInsert + "^)");
         });
         return this.findMarkdownLink(editor, spot);
     }

@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.4.7
+* `[` now allows auto-completion to an existing link head
+
 ## 1.4.6
 
 * Multiline extraction includes "From" link if appropriate.

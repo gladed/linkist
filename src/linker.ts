@@ -1,4 +1,5 @@
 import {
+    CancellationToken,
     Location,
     Position,
     Range,
@@ -114,10 +115,24 @@ export default class Linker extends Disposable {
         return undefined;
     }
 
+    public async allLinks(token: CancellationToken | undefined = undefined): Promise<Link[]> {
+        return Array.from((await this.cache).values()).reduce<Link[]>((previousValue: Link[], currentValue: Lazy<Link[]>) => {
+            if (token?.isCancellationRequested) {
+                return [];
+            } else {
+                return previousValue.concat(currentValue.value);
+            }
+        }, []);
+    }
+
     /** Given a query string, return any links that appear to match, even partially. */
-    public async lookupLinks(query: string): Promise<Link[]> {
-        return Promise.all(Array.from((await this.cache).values()).map(x => x.value))
+    public async lookupLinks(query: string, token: CancellationToken | undefined = undefined): Promise<Link[]> {
+        return Promise.all(Array.from((await this.cache).values())
+            .map(x => x.value))
             .then(sets => {
+                if (token?.isCancellationRequested) {
+                    return [];
+                }
                 let all = flatten(sets)
                     .filter(symbol => symbol.name.indexOf(query) !== -1);
 

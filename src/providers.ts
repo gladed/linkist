@@ -1,20 +1,25 @@
 import {
     CancellationToken,
+    CompletionItemProvider,
+    CompletionContext,
+    CompletionItem,
+    CompletionList,
     DefinitionProvider,
     Position,
     ReferenceContext,
-    TextDocument,
     ReferenceProvider,
+    TextDocument,
+    CompletionItemKind,
 } from 'vscode';
 import Linker from './linker';
 
 /** Tell VSCode how to find the "definition" for a link id. */
 export class MarkdownDefinitionProvider implements DefinitionProvider {
-    constructor(public linkProvider: Linker) { }
+    constructor(public linker: Linker) { }
     async provideDefinition(document: TextDocument, position: Position, _: CancellationToken) {
-        const sourceLink = await this.linkProvider.linkAt(document.uri, position);
+        const sourceLink = await this.linker.linkAt(document.uri, position);
         if (sourceLink) {
-            const references = this.linkProvider.linksFor(sourceLink.linkId.text);
+            const references = this.linker.linksFor(sourceLink.linkId.text);
             if (references) {
                 for (let target of references) {
                     if (target.isHead()) {
@@ -31,14 +36,53 @@ export class MarkdownDefinitionProvider implements DefinitionProvider {
 
 /** Tell VSCode how to find references to the current link id. */
 export class MarkdownReferenceProvider implements ReferenceProvider {
-    constructor(public linkProvider: Linker) { }
+    constructor(public linker: Linker) { }
     async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, _: CancellationToken) {
-        const link = await this.linkProvider.linkAt(document.uri, position);
+        const link = await this.linker.linkAt(document.uri, position);
         if (!link) {
             return [];
         }
-        return this.linkProvider.linksFor(link.linkId.text)
+        return this.linker.linksFor(link.linkId.text)
             ?.filter(_ => _ !== link || context.includeDeclaration)
             .map(_ => _.location);
     }
+}
+
+/** When the user hits '[' then give some options based on text. */
+export class MarkdownCompletionItemProvider implements CompletionItemProvider {
+    constructor(public linker: Linker) { }
+
+    async provideCompletionItems(
+        document: TextDocument,
+        __: Position,
+        token: CancellationToken,
+        ___: CompletionContext
+    ): Promise<CompletionList<CompletionItem>> {
+        // Convert head links to [CompletionItem] objects
+        let links = (await this.linker.allLinks(token))
+            .filter((link) => link.isHead())
+            .map((link) => {
+                return {
+                    label: "[" + link.label + "](^" + link.linkId.text + "^)",
+                    documentation: relativePath(link.location.uri.fsPath, document.uri.toString().slice(7)),
+                    insertText: link.label,
+                    command: {
+                        arguments: [link.linkId.text],
+                        command: "linkist.link",
+                        title: ""
+                    },
+                    kind: CompletionItemKind.Reference
+                };
+            });
+        return new CompletionList(links, true);
+    }
+}
+
+/** Snip out the unique part of one (the part not duplicated in two). */
+function relativePath(one: string, two: string) {
+    let index = 0;
+    while (index < one.length && index < two.length && one[index] === two[index]) {
+        index++;
+    }
+    return one.slice(index);
 }

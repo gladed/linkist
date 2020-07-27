@@ -14,7 +14,8 @@ import { LinkTree } from './linkTree';
 import { Disposer } from './util/disposable';
 import {
     MarkdownDefinitionProvider,
-    MarkdownReferenceProvider
+    MarkdownReferenceProvider,
+    MarkdownCompletionItemProvider
 } from './providers';
 
 const markdownSelector = { scheme: 'file', language: 'markdown' };
@@ -30,19 +31,21 @@ export async function activate(context: ExtensionContext) {
     // Enable the link command
     disposer.register(commands.registerCommand('linkist.link', handleLinkCommand));
 
-
     // CTRL+Click to bounce between definitions. If there are 3+ it opens up a reference peek view
     disposer.register(languages.registerDefinitionProvider(markdownSelector, new MarkdownDefinitionProvider(linker)));
 
     // This works but you have to type F12 or shift+F12 or CTRL+Click to get there
     disposer.register(languages.registerReferenceProvider(markdownSelector, new MarkdownReferenceProvider(linker)));
 
+    // Allow the user to auto-complete a link when `[` is typed
+    disposer.register(languages.registerCompletionItemProvider(markdownSelector, new MarkdownCompletionItemProvider(linker), '['));
+
     // Things we don't do:
 
     // Don't do symbol searches, markdown plugin already handles these for # lines
     // disposer.register(languages.registerWorkspaceSymbolProvider(new LinkSymbolProvider(linker)));
 
-    // Provide symbols on a per-document basis. Not needed because we have a workspace symbol provider
+    // Provide symbols on a per-document basis. Not needed because we might also have a workspace symbol provider
     // disposer.register(languages.registerDocumentSymbolProvider(markdownSelector, ...));
 
     // This underlines the whole link but breaks CTRL+CLICK on # head because it links to itself.
@@ -67,7 +70,7 @@ export async function activate(context: ExtensionContext) {
             if (window.activeTextEditor &&
                 window.activeTextEditor.document.uri.scheme === 'file' &&
                 window.activeTextEditor.document.languageId === 'markdown') {
-                    linkExplorer.links = await linker.linksIn(window.activeTextEditor.document.uri);
+                linkExplorer.links = await linker.linksIn(window.activeTextEditor.document.uri);
             }
         }
 
@@ -94,7 +97,7 @@ export async function activate(context: ExtensionContext) {
         updateLinkExplorerVisibility();
     }
 
-    async function handleLinkCommand() {
+    async function handleLinkCommand(linkText: string | undefined = undefined) {
         const editor = window.activeTextEditor;
         if (!editor) {
             return;
@@ -109,7 +112,7 @@ export async function activate(context: ExtensionContext) {
                     jumpTo = links[1];
                 }
                 let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
-                await window.showTextDocument(jumpTo.location.uri, {selection: jumpTo.location.range, viewColumn: viewColumn});
+                await window.showTextDocument(jumpTo.location.uri, { selection: jumpTo.location.range, viewColumn: viewColumn });
             } else if (links.length > 2) {
                 let jumpTo: SymbolInformation | undefined;
                 if (!editor.document.lineAt(editor.selection.start.line).text.startsWith("#")) {
@@ -117,7 +120,7 @@ export async function activate(context: ExtensionContext) {
                 }
                 if (jumpTo) {
                     let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
-                    await window.showTextDocument(jumpTo.location.uri, {selection: jumpTo.location.range, viewColumn: viewColumn});
+                    await window.showTextDocument(jumpTo.location.uri, { selection: jumpTo.location.range, viewColumn: viewColumn });
                 } else {
                     commands.executeCommand("editor.action.referenceSearch.trigger");
                 }
@@ -127,7 +130,7 @@ export async function activate(context: ExtensionContext) {
         } else if (editorHandler.visitUri(editor, editor.selection)) {
             // If true, request was launched so do nothing
         } else {
-            const range = await editorHandler.insertLink(editor);
+            const range = await editorHandler.insertLink(editor, linkText);
             if (range) {
                 editor.selection = new Selection(range.start, range.end);
             }
