@@ -4,7 +4,7 @@
 	"displayName": "linkist",
 	"icon": "img/icon_100.png",
 	"description": "Create and follow permanent links in Markdown files",
-	"version": "1.4.7",
+	"version": "1.4.8",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/gladed/linkist"

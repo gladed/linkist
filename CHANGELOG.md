@@ -1,6 +1,6 @@
 # Change Log
 
-## 1.4.7
+## 1.4.8
 
 * `[` now allows auto-completion to an existing link head
 * Multiline link "from" line more forgiving about parent depth
