@@ -12,6 +12,7 @@ import { camelize } from './util/text';
 import { TextEncoder } from 'util';
 import Linker from './linker';
 import { linkIdRe, markdownLinkRe, markdownPrefixRe, markdownLinkTitleRe } from './util/link';
+import { link } from 'fs';
 
 export class EditorLinkHandler {
 
@@ -140,11 +141,20 @@ export class EditorLinkHandler {
     private async handleUnlinked(editor: TextEditor, at: Range): Promise<Range | undefined> {
         // Find a range and promote it to a link
         const linkRange: Range = this.findLinkableRange(editor, at);
-        const linkText = (await this.linker.newLinkId(editor.document.getText(at))).text;
-        await editor.edit(builder => {
-            builder.insert(linkRange.start, "[");
-            builder.insert(linkRange.end, "](^" + linkText + "^)");
-        });
+        const linkText = (await this.linker.newLinkId(editor.document.getText(at))).text.trim();
+        const linkLabel = editor.document.getText(linkRange).toLowerCase();
+        const match = (await this.linker.allLinks()).find((link) => link.label?.toLowerCase() === linkLabel);
+        if (match && linkText.length > 0) {
+            await editor.edit(builder => {
+                builder.insert(linkRange.start, "[");
+                builder.insert(linkRange.end, "](^" + match.linkId.text + "^)");
+            });
+        } else {
+            await editor.edit(builder => {
+                builder.insert(linkRange.start, "[");
+                builder.insert(linkRange.end, "](^" + linkText + "^)");
+            });
+        }
         return this.findMarkdownLink(editor, linkRange.start);
     }
 

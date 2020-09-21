@@ -1,7 +1,9 @@
 # Change Log
 
 ## 1.4.9
+
 * Cleaner `[` auto-completion to avoid conflicts (#3).
+* When linking selected text, a perfect match will reuse the existing link (#4).
 
 ## 1.4.8
 
