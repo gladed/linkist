@@ -1,5 +1,8 @@
 # Change Log
 
+## 1.4.9
+* Cleaner `[` auto-completion to avoid conflicts (#3).
+
 ## 1.4.8
 
 * `[` now allows auto-completion to an existing link head

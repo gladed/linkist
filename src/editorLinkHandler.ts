@@ -1,4 +1,5 @@
 import {
+    TextDocument,
     Position,
     Range,
     Selection,
@@ -20,30 +21,24 @@ export class EditorLinkHandler {
     emptyTargetRe = new RegExp(this.noTargetRe.source + '\\(\\)');
     /** An optionally prefixed link containing ANY target. */
     anyTargetRe = new RegExp(this.noTargetRe.source + '\\([^\\)]+\\)');
-
-    prefixedUnlinkedLineRe = new RegExp(markdownPrefixRe.source + '[^\\[]+');
+    /** A line with prefix parts also containing a link. */
     prefixLinkRe = new RegExp('(' + markdownPrefixRe.source + ')?' + markdownLinkRe.source);
+    prefixedUnlinkedLineRe = new RegExp(markdownPrefixRe.source + '[^\\[]+');
 
     constructor(private linker: Linker) { }
 
-    // Given the current selection, find and extract the nearest link ID inside it
-    public linkIdNearCursor(editor: TextEditor): string | undefined {
-        // Ignore multi-line selection
-        if (editor.selection.start.line !== editor.selection.end.line) { return undefined; }
-
-        // Cursor plain link ID
-        let match = editor.document.getWordRangeAtPosition(editor.selection.active, linkIdRe);
-        if (match) {
-            editor.selection = new Selection(
-                match.start.translate(0, 1), match.end.translate(0, -1));
-            return editor.document.getText(editor.selection);
+    public linkIdAt(document: TextDocument, position: Position): string | undefined {
+        // Find fully-qualified link
+        let range = document.getWordRangeAtPosition(position, this.prefixLinkRe);
+        if (range) {
+            return document.getText(range).match(linkIdRe)![0].slice(1, -1);
         }
 
-        // Cursor on `* [markdown](^....^)` link ID
-        match = editor.document.getWordRangeAtPosition(editor.selection.active, this.prefixLinkRe);
-        if (match) {
-            editor.selection = new Selection(match.end.translate(0, -6), match.end.translate(0, -2));
-            return editor.document.getText(editor.selection);
+        // Allow for standalone link IDs ^...^
+        range = document.getWordRangeAtPosition(position, linkIdRe);
+        if (range) {
+            range = new Range(range.start.translate(0, 1), range.end.translate(0, -1));
+            return document.getText(range);
         }
         return undefined;
     }
@@ -63,16 +58,16 @@ export class EditorLinkHandler {
     }
 
     /**
-     * Find or create a good insertion point for a new tag, add appropriate content,
+     * Find or create a good insertion point for a new link, add appropriate content,
      * and return a position where the new text may be inserted
      */
-    public async insertLink(editor: TextEditor, linkText: string | undefined) {
+    public async insertLink(editor: TextEditor) {
         const at = editor.selection.active;
         const multiline = editor.selection.active.line !== editor.selection.anchor.line;
         if (multiline) {
             return await this.handleMultiLine(editor);
         } else {
-            return await this.handleSingleLine(editor, editor.selection, linkText);
+            return await this.handleSingleLine(editor, editor.selection);
         }
     }
 

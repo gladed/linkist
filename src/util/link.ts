@@ -36,7 +36,7 @@ export class LinkId {
     private constructor(
         /** Text representing the link, e.g. "iwy3" */
         public readonly text: string,
-        /** Date of originally creation. */
+        /** Date of original creation. */
         public readonly date: Date,
         /** Numeric offset within date. */
         public readonly ordinal: number

@@ -2,7 +2,6 @@ import {
     CancellationToken,
     CompletionItemProvider,
     CompletionContext,
-    CompletionItem,
     CompletionList,
     DefinitionProvider,
     Position,
@@ -12,6 +11,7 @@ import {
     CompletionItemKind,
 } from 'vscode';
 import Linker from './linker';
+import { linkIdRe } from './util/link';
 
 /** Tell VSCode how to find the "definition" for a link id. */
 export class MarkdownDefinitionProvider implements DefinitionProvider {
@@ -37,7 +37,12 @@ export class MarkdownDefinitionProvider implements DefinitionProvider {
 /** Tell VSCode how to find references to the current link id. */
 export class MarkdownReferenceProvider implements ReferenceProvider {
     constructor(public linker: Linker) { }
-    async provideReferences(document: TextDocument, position: Position, context: ReferenceContext, _: CancellationToken) {
+    async provideReferences(
+        document: TextDocument,
+        position: Position,
+        context: ReferenceContext,
+        _: CancellationToken
+    ) {
         const link = await this.linker.linkAt(document.uri, position);
         if (!link) {
             return [];
@@ -52,25 +57,34 @@ export class MarkdownReferenceProvider implements ReferenceProvider {
 export class MarkdownCompletionItemProvider implements CompletionItemProvider {
     constructor(public linker: Linker) { }
 
+    // A candidate link that does NOT match on `[[`
+    candidateLinkStartRe = /(^|[^\[])\[[^\\[]*\]/;
+
+    // Accept an empty or populated markdownLink
+    candidateRe = new RegExp(this.candidateLinkStartRe.source + '(\\(' + linkIdRe.source + '\\)|[^\\(]|$)');
+
     async provideCompletionItems(
         document: TextDocument,
-        __: Position,
+        position: Position,
         token: CancellationToken,
         ___: CompletionContext
-    ): Promise<CompletionList<CompletionItem>> {
-        // Convert head links to [CompletionItem] objects
+    ) {
+        // Return no matches unless we're on a real candidate
+        let candidate = document.getWordRangeAtPosition(position, this.candidateRe);
+        if (!candidate) {
+            return [];
+        }
+
+        // Convert all head links into [CompletionItem] objects for insertion
         let links = (await this.linker.allLinks(token))
             .filter((link) => link.isHead())
             .map((link) => {
+                const markdownLink = "[" + link.label + "](^" + link.linkId.text + "^)";
                 return {
-                    label: "[" + link.label + "](^" + link.linkId.text + "^)",
-                    documentation: relativePath(link.location.uri.fsPath, document.uri.toString().slice(7)),
-                    insertText: link.label,
-                    command: {
-                        arguments: [link.linkId.text],
-                        command: "linkist.link",
-                        title: ""
-                    },
+                    label: markdownLink,
+                    detail: relativePath(link.location.uri.fsPath, document.uri.toString().slice(7)),
+                    documentation: "Created " + link.linkId.date.toISOString().slice(0, 10),
+                    range: candidate,
                     kind: CompletionItemKind.Reference
                 };
             });

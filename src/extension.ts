@@ -28,7 +28,7 @@ export async function activate(context: ExtensionContext) {
     const linker = disposer.register(new Linker());
     const editorHandler = new EditorLinkHandler(linker);
 
-    // Enable the link command
+    // Enable commands
     disposer.register(commands.registerCommand('linkist.link', handleLinkCommand));
 
     // CTRL+Click to bounce between definitions. If there are 3+ it opens up a reference peek view
@@ -55,6 +55,7 @@ export async function activate(context: ExtensionContext) {
     // the link tree will do a better job contextualizing the current link.
     // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
 
+    // Not ready:
     function setupLinkExplorer() {
         const linkExplorer = new LinkTree();
 
@@ -97,12 +98,12 @@ export async function activate(context: ExtensionContext) {
         updateLinkExplorerVisibility();
     }
 
-    async function handleLinkCommand(linkText: string | undefined = undefined) {
+    async function handleLinkCommand() {
         const editor = window.activeTextEditor;
         if (!editor) {
             return;
         }
-        const linkId = editorHandler.linkIdNearCursor(editor);
+        const linkId = editorHandler.linkIdAt(editor.document, editor.selection.active);
         if (linkId) {
             let links = await linker.lookupLinks(linkId);
 
@@ -130,7 +131,7 @@ export async function activate(context: ExtensionContext) {
         } else if (editorHandler.visitUri(editor, editor.selection)) {
             // If true, request was launched so do nothing
         } else {
-            const range = await editorHandler.insertLink(editor, linkText);
+            const range = await editorHandler.insertLink(editor);
             if (range) {
                 editor.selection = new Selection(range.start, range.end);
             }
