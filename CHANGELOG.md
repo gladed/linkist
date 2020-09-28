@@ -1,5 +1,10 @@
 # Change Log
 
+## 1.4.10
+
+* Ctrl+Space replacement of links improved
+
+
 ## 1.4.9
 
 * Cleaner `[` auto-completion to avoid conflicts (#3).

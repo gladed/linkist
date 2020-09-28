@@ -5,6 +5,7 @@ import {
     CompletionList,
     DefinitionProvider,
     Position,
+    Range,
     ReferenceContext,
     ReferenceProvider,
     TextDocument,
@@ -58,10 +59,10 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
     constructor(public linker: Linker) { }
 
     // A candidate link that does NOT match on `[[`
-    candidateLinkStartRe = /(^|[^\[])\[[^\\[]*\]/;
+    candidateLinkStartRe = /(^|[^\[])(\[[^\\[]*\])/;
 
     // Accept an empty or populated markdownLink
-    candidateRe = new RegExp(this.candidateLinkStartRe.source + '(\\(' + linkIdRe.source + '\\)|[^\\(]|$)');
+    candidateRe = new RegExp(this.candidateLinkStartRe.source + '(\\(' + linkIdRe.source + '\\))?([^\\(]|$)');
 
     async provideCompletionItems(
         document: TextDocument,
@@ -74,6 +75,11 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
         if (!candidate) {
             return [];
         }
+
+        // Review the match again and select the correct replacement range
+        const matches = document.getText(candidate).match(this.candidateRe)!!;
+        candidate = new Range(candidate.start.translate(0, matches[1].length),
+            candidate.end.translate(0, -matches[4].length));
 
         // Convert all head links into [CompletionItem] objects for insertion
         let links = (await this.linker.allLinks(token))

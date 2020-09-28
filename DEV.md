@@ -36,4 +36,6 @@ npx ovsx publish -p $(cat .open-vsx-token)
 
 # Tag
 git push --tags
+
+# Promote tag to release at https://github.com/gladed/linkist/tags
 ```
