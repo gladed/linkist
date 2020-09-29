@@ -1,5 +1,6 @@
 import {
     CancellationToken,
+    EventEmitter,
     Location,
     Position,
     Range,
@@ -15,36 +16,46 @@ import { textToDate } from './util/date';
 /** Scans for {@link Link}s in markdown documents. */
 export default class Linker extends Disposable {
 
-    private _cache = lazy(async () => {
+    private readonly onUpdatedLinksEmitter = this.register(new EventEmitter<Uri>());
+
+    /** Return an event that fires whenever a resource has new links. */
+    public get onUpdatedLinks() {
+        return this.onUpdatedLinksEmitter.event;
+    }
+
+    /** A map of all link IDs to known Link objects. */
+    private linkMap = new Map<string, Link[]>();
+
+    /** A lazily-evaluated map of file paths to arrays of links within. */
+    private lazyFileMap = lazy(async () => {
+        // Note: Strings are used because Uri's are not stable map keys
         let cache = new Map<string, Lazy<Link[]>>();
 
-        // Initialize the cache and watch for document changes anywhere
+        // Initialize the cache
         await this.scanner.forEach(doc => {
             cache.set(doc.uri.fsPath, this.scan(doc));
-            this.refreshLinks();
         });
+        this.refreshLinks();
+
+        // Watch everywhere for changes
         this.register(this.scanner.onDidDeleteDocument(deleted => {
-            this.invalidateLinks(cache.get(deleted.fsPath)?.value);
+            const lostLinks = cache.get(deleted.fsPath)?.value;
+            this.invalidateLinks(lostLinks);
             cache.delete(deleted.fsPath);
             this.refreshLinks();
         }));
         this.register(this.scanner.onDidUpdateDocument(updated => {
-            this.invalidateLinks(cache.get(updated.uri.fsPath)?.value);
+            const lostLinks = cache.get(updated.uri.fsPath)?.value;
+            this.invalidateLinks(lostLinks);
             cache.set(updated.uri.fsPath, this.scan(updated));
             this.refreshLinks();
         }));
         return cache;
     });
 
-    /** A map of all link IDs to known links objects. */
-    private linkMap = new Map<string, Link[]>();
-
-    /**
-     * A map of markdown resource locations to lazily-evaluated lists of links.
-     * Note: string is used because Uri's do not make stable map keys.
-     */
-    private get cache(): Promise<Map<string, Lazy<Link[]>>> {
-        return this._cache.value;
+    /** Shortcut to get the fileMap when it's ready. */
+    private get fileMap(): Promise<Map<string, Lazy<Link[]>>> {
+        return this.lazyFileMap.value;
     }
 
     public constructor(private scanner: PublicInterfaceOf<MarkdownScanner> = new MarkdownScanner()) {
@@ -59,24 +70,33 @@ export default class Linker extends Disposable {
     }
 
     private async refreshLinks() {
-        // Compile a list of link IDs whose lists changed
+        const urisUpdated: Uri[] = [];
+        // Review all links in all files
         const toAdd = new Map<string, Link[]>();
-        for (let links of (await this.cache).values()) {
+        for (let links of (await this.fileMap).values()) {
             for (let link of links.value) {
                 let linkIdText = link.linkId.text;
                 if (!this.linkMap.get(linkIdText)) {
+                    // This link isn't in the map yet so build it up
                     const addLinks = toAdd.get(linkIdText);
                     if (addLinks) {
                         addLinks.push(link);
                     } else {
                         toAdd.set(linkIdText, [link]);
                     }
+                    if (!urisUpdated.find(uri => link.location.uri.fsPath === uri.fsPath)) {
+                        urisUpdated.push(link.location.uri);
+                    }
                 }
             }
         }
+
         for (let links of toAdd.values()) {
-            // May have to clear parent links on these
             this.linkMap.set(links[0].linkId.text, links);
+        }
+
+        for (let uri of urisUpdated) {
+            this.onUpdatedLinksEmitter.fire(uri);
         }
     }
 
@@ -92,19 +112,19 @@ export default class Linker extends Disposable {
         }
     }
 
-    /** Return all links matching linkText. */
-    public linksFor(linkText: string) {
+    /** Return all currently-known links matching link ID text. */
+    public linksFor(linkText: string): (Link[] | undefined) {
         return this.linkMap.get(linkText);
     }
 
     /** Return links found in the current resource if any. */
     public async linksIn(resource: Uri) {
-        return (await this.cache).get(resource.fsPath)?.value;
+        return (await this.fileMap).get(resource.fsPath)?.value;
     }
 
     /** Return the link at the specified location if any. */
     public async linkAt(resource: Uri, at: Position) {
-        const links: Link[] | undefined = (await this.cache).get(resource.fsPath)?.value;
+        const links: Link[] | undefined = (await this.fileMap).get(resource.fsPath)?.value;
         if (links) {
             for (let link of links) {
                 if (link.location.range.contains(at)) {
@@ -116,7 +136,7 @@ export default class Linker extends Disposable {
     }
 
     public async allLinks(token: CancellationToken | undefined = undefined): Promise<Link[]> {
-        return Array.from((await this.cache).values()).reduce<Link[]>((previousValue: Link[], currentValue: Lazy<Link[]>) => {
+        return Array.from((await this.fileMap).values()).reduce<Link[]>((previousValue: Link[], currentValue: Lazy<Link[]>) => {
             if (token?.isCancellationRequested) {
                 return [];
             } else {
@@ -127,7 +147,7 @@ export default class Linker extends Disposable {
 
     /** Given a query string, return any links that appear to match, even partially. */
     public async lookupLinks(query: string, token: CancellationToken | undefined = undefined): Promise<Link[]> {
-        return Promise.all(Array.from((await this.cache).values())
+        return Promise.all(Array.from((await this.fileMap).values())
             .map(x => x.value))
             .then(sets => {
                 if (token?.isCancellationRequested) {

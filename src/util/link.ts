@@ -142,7 +142,7 @@ export class Link extends SymbolInformation {
     }
 
     /** Return true if this link is a "head" (occurs on a markdown heading line). */
-    public isHead() {
+    public get isHead() {
         return this.line.startsWith('#');
     }
 
@@ -159,6 +159,6 @@ export class Link extends SymbolInformation {
     public toString() {
         return "Link(uri=" + this.location.uri.fsPath + ":" + this.location.range.start.line +
             "#" + this.location.range.start.character + "-" + this.location.range.end.character + " " + this.linkId.toString() +
-            " prefix=" + this.prefix + " parent=" + this.parent?.linkId.text + ")";
+            " line=" + this.line + " prefix=" + this.prefix + " parent=" + this.parent?.linkId.text + ")";
     }
 }

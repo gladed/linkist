@@ -15,8 +15,9 @@ import { Disposer } from './util/disposable';
 import {
     MarkdownDefinitionProvider,
     MarkdownReferenceProvider,
-    MarkdownCompletionItemProvider
+    MarkdownCompletionItemProvider,
 } from './providers';
+import { MarkdownDiagnosticHandler } from './markdownDiagnosticHandler';
 
 const markdownSelector = { scheme: 'file', language: 'markdown' };
 
@@ -39,6 +40,8 @@ export async function activate(context: ExtensionContext) {
 
     // Allow the user to auto-complete a link when `[` is typed
     disposer.register(languages.registerCompletionItemProvider(markdownSelector, new MarkdownCompletionItemProvider(linker), '['));
+
+    disposer.register(new MarkdownDiagnosticHandler(languages.createDiagnosticCollection("Link diagnostics"), linker));
 
     // Things we don't do:
 
@@ -103,6 +106,10 @@ export async function activate(context: ExtensionContext) {
         if (!editor) {
             return;
         }
+
+        // Finish link population
+        await linker.linksIn(editor.document.uri);
+
         const linkId = editorHandler.linkIdAt(editor.document, editor.selection.active);
         if (linkId) {
             let links = await linker.lookupLinks(linkId);

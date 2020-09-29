@@ -23,7 +23,7 @@ export class MarkdownDefinitionProvider implements DefinitionProvider {
             const references = this.linker.linksFor(sourceLink.linkId.text);
             if (references) {
                 for (let target of references) {
-                    if (target.isHead()) {
+                    if (target.isHead) {
                         return target.location;
                     }
                 }
@@ -83,7 +83,7 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
 
         // Convert all head links into [CompletionItem] objects for insertion
         let links = (await this.linker.allLinks(token))
-            .filter((link) => link.isHead())
+            .filter((link) => link.isHead)
             .map((link) => {
                 const markdownLink = "[" + link.label + "](^" + link.linkId.text + "^)";
                 return {
