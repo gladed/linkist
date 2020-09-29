@@ -37,18 +37,22 @@ export default class Linker extends Disposable {
         });
         this.refreshLinks();
 
-        // Watch everywhere for changes
+        // When document deleted, trash its links and refresh all affected docs
         this.register(this.scanner.onDidDeleteDocument(deleted => {
             const lostLinks = cache.get(deleted.fsPath)?.value;
-            this.invalidateLinks(lostLinks);
             cache.delete(deleted.fsPath);
+            this.invalidateLinks(lostLinks);
             this.refreshLinks();
         }));
-        this.register(this.scanner.onDidUpdateDocument(updated => {
+
+        // When document updated, refresh its links
+        this.register(this.scanner.onDidUpdateDocument(async updated => {
             const lostLinks = cache.get(updated.uri.fsPath)?.value;
+            const newLinks = this.scan(updated);
+            cache.set(updated.uri.fsPath, newLinks);
             this.invalidateLinks(lostLinks);
-            cache.set(updated.uri.fsPath, this.scan(updated));
-            this.refreshLinks();
+            this.invalidateLinks(newLinks.value);
+            this.refreshLinks(updated.uri);
         }));
         return cache;
     });
@@ -69,8 +73,11 @@ export default class Linker extends Disposable {
         }
     }
 
-    private async refreshLinks() {
+    private async refreshLinks(updated: Uri | undefined = undefined) {
         const urisUpdated: Uri[] = [];
+        if (updated) {
+            urisUpdated.push(updated);
+        }
         // Review all links in all files
         const toAdd = new Map<string, Link[]>();
         for (let links of (await this.fileMap).values()) {

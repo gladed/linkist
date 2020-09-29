@@ -43,6 +43,16 @@ export async function activate(context: ExtensionContext) {
 
     disposer.register(new MarkdownDiagnosticHandler(languages.createDiagnosticCollection("Link diagnostics"), linker));
 
+    // Auto startup
+    if (window.activeTextEditor) {
+        linker.linksIn(window.activeTextEditor.document.uri);
+    } else {
+        disposer.register(window.onDidChangeActiveTextEditor(_ => {
+            if (window.activeTextEditor) {
+                linker.linksIn(window.activeTextEditor.document.uri);
+            }}));
+    }
+
     // Things we don't do:
 
     // Don't do symbol searches, markdown plugin already handles these for # lines
@@ -58,48 +68,47 @@ export async function activate(context: ExtensionContext) {
     // the link tree will do a better job contextualizing the current link.
     // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
 
-    // Not ready:
-    function setupLinkExplorer() {
-        const linkExplorer = new LinkTree();
+    // Also not ready:
+    // function setupLinkExplorer() {
+    //     const linkExplorer = new LinkTree();
 
-        // Provide data to the explorer pane
-        disposer.register(window.registerTreeDataProvider('links', linkExplorer));
+    //     // Provide data to the explorer pane
+    //     disposer.register(window.registerTreeDataProvider('links', linkExplorer));
 
-        // When a link is selected (e.g. from LinkTree) specify the target selection range
-        disposer.register(commands.registerCommand('extension.openLinkSelection', (location: Location) => {
-            window.showTextDocument(location.uri, { selection: location.range });
-        }));
+    //     // When a link is selected (e.g. from LinkTree) specify the target selection range
+    //     disposer.register(commands.registerCommand('extension.openLinkSelection', (location: Location) => {
+    //         window.showTextDocument(location.uri, { selection: location.range });
+    //     }));
 
-        async function refreshLinks() {
-            if (window.activeTextEditor &&
-                window.activeTextEditor.document.uri.scheme === 'file' &&
-                window.activeTextEditor.document.languageId === 'markdown') {
-                linkExplorer.links = await linker.linksIn(window.activeTextEditor.document.uri);
-            }
-        }
+    //     async function refreshLinks() {
+    //         if (window.activeTextEditor &&
+    //             window.activeTextEditor.document.uri.scheme === 'file' &&
+    //             window.activeTextEditor.document.languageId === 'markdown') {
+    //         }
+    //     }
 
-        // Enable/disable the explorer pane when the editor changes.
-        async function updateLinkExplorerVisibility() {
-            if (window.activeTextEditor) {
-                if (window.activeTextEditor.document.uri.scheme === 'file') {
-                    const enabled = window.activeTextEditor.document.languageId === 'markdown';
-                    if (enabled) {
-                        refreshLinks();
-                    }
-                    commands.executeCommand('setContext', 'markdownLinksEnabled', enabled);
-                }
-            } else {
-                commands.executeCommand('setContext', 'markdownLinksEnabled', false);
-            }
-        }
-        disposer.register(window.onDidChangeActiveTextEditor(updateLinkExplorerVisibility));
-        disposer.register(workspace.onDidChangeTextDocument(e => {
-            if (e.document.uri.fsPath === window.activeTextEditor?.document.uri.fsPath) {
-                refreshLinks();
-            }
-        }));
-        updateLinkExplorerVisibility();
-    }
+    //     // Enable/disable the explorer pane when the editor changes.
+    //     async function updateLinkExplorerVisibility() {
+    //         if (window.activeTextEditor) {
+    //             if (window.activeTextEditor.document.uri.scheme === 'file') {
+    //                 const enabled = window.activeTextEditor.document.languageId === 'markdown';
+    //                 if (enabled) {
+    //                     refreshLinks();
+    //                 }
+    //                 commands.executeCommand('setContext', 'markdownLinksEnabled', enabled);
+    //             }
+    //         } else {
+    //             commands.executeCommand('setContext', 'markdownLinksEnabled', false);
+    //         }
+    //     }
+    //     disposer.register(window.onDidChangeActiveTextEditor(updateLinkExplorerVisibility));
+    //     disposer.register(workspace.onDidChangeTextDocument(e => {
+    //         if (e.document.uri.fsPath === window.activeTextEditor?.document.uri.fsPath) {
+    //             refreshLinks();
+    //         }
+    //     }));
+    //     updateLinkExplorerVisibility();
+    // }
 
     async function handleLinkCommand() {
         const editor = window.activeTextEditor;
@@ -107,14 +116,12 @@ export async function activate(context: ExtensionContext) {
             return;
         }
 
-        // Finish link population
-        await linker.linksIn(editor.document.uri);
-
         const linkId = editorHandler.linkIdAt(editor.document, editor.selection.active);
         if (linkId) {
             let links = await linker.lookupLinks(linkId);
-
-            if (links.length === 2) {
+            if (!links.find(l => l.isHead) && await editorHandler.createNote(editor)) {
+                // Done already
+            } else if (links.length === 2) {
                 let jumpTo = links[0];
                 if (jumpTo.location.range.start.line === editor.selection.start.line) {
                     jumpTo = links[1];
@@ -132,8 +139,6 @@ export async function activate(context: ExtensionContext) {
                 } else {
                     commands.executeCommand("editor.action.referenceSearch.trigger");
                 }
-            } else {
-                window.showWarningMessage("'" + linkId + "' does not link to anything");
             }
         } else if (editorHandler.visitUri(editor, editor.selection)) {
             // If true, request was launched so do nothing

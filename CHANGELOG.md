@@ -2,8 +2,9 @@
 
 ## 1.4.10
 
-* Ctrl+Space replacement of links improved
-
+* Ctrl+Space replacement of links improved.
+* Show link warnings (#6)
+* Link command automatically creates new note if no heading yet (#7).
 
 ## 1.4.9
 

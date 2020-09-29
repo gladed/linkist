@@ -5,6 +5,8 @@
 
 A [Visual Studio Code extension](https://marketplace.visualstudio.com/items?itemName=gladed.linkist) to create persistent links between markdown documents in your workspace.
 
+It's a great way to implement a private "Zettelkasten" note taking system as described in [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
+
 ## Install
 
 1. Open [VSCode](https://code.visualstudio.com/) or [VSCodium](https://github.com/VSCodium/vscodium).
@@ -34,12 +36,15 @@ A [Visual Studio Code extension](https://marketplace.visualstudio.com/items?item
 
 3. Put your cursor on that link and type `Ctrl+Alt+L` again to go back to the heading.
 
-4. Type `Ctrl+Alt+L` yet again to visit/list other places the link ID appears.
+4. Type `Ctrl+Alt+L` yet again to visit or list other places the link ID appears.
 
 ## Advanced Topics
 
-* Select multiple lines (starting with a heading) and `Ctrl+Alt+L` will extract that section into a new file, replacing it with a link and backlink.
+* Understand why some links create [warnings](https://github.com/gladed/linkist/wiki/Warnings).
+* Create new note files automatically:
+  * Select multiple lines (starting with a heading) and `Ctrl+Alt+L` to extract that section into a new note
+  * Use `Ctrl+Alt+L` on a link with no associated heading yet
 * Type `[` to auto-complete from existing links.
-* Implement a "Zettelkasten" note taking system as described in [How to Take Smart Notes by Sönke Ahrens](https://amzn.to/2vi6Sm9).
 * Read the [Change Log](CHANGELOG.md).
-* Read [Frequently Asked Questions](https://github.com/gladed/linkist/wiki/FAQ).
+
+See [Frequently Asked Questions](https://github.com/gladed/linkist/wiki/FAQ) for more.

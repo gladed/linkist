@@ -7,6 +7,7 @@ import {
     Uri,
     workspace,
     commands,
+    window
 } from 'vscode';
 import { camelize } from './util/text';
 import { TextEncoder } from 'util';
@@ -205,6 +206,26 @@ export class EditorLinkHandler {
             builder.insert(origin, "* " + titleLinkText);
         });
         return titleRange;
+    }
+
+    public async createNote(editor: TextEditor): Promise<Boolean> {
+        const link = await this.linker.linkAt(editor.document.uri, editor.selection.start);
+        if (!link || !link.label || link.isHead) {
+            return false;
+        }
+        const title = link.label!!.replace(/\b\w/g, c => c.toUpperCase());
+        const fileName = camelize(title);
+        let text = '# [' + title + '](^' + link.linkId.text + '^)\n';
+        if (link?.parent) {
+            text = text + '\nFrom: ' + link.parent.toMarkdown() + '\n';
+        }
+        const destUri = await this.createTargetFile(editor.document.uri, fileName, text);
+        if (!destUri) {
+            window.showWarningMessage("Could not create " + fileName);
+            return false;
+        }
+        await window.showTextDocument(destUri);
+        return true;
     }
 
     private async createTargetFile(near: Uri, name: string, text: string): Promise<Uri | undefined> {
