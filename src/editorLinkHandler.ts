@@ -2,7 +2,6 @@ import {
     TextDocument,
     Position,
     Range,
-    Selection,
     TextEditor,
     Uri,
     workspace,
@@ -12,8 +11,7 @@ import {
 import { camelize } from './util/text';
 import { TextEncoder } from 'util';
 import Linker from './linker';
-import { linkIdRe, markdownLinkRe, markdownPrefixRe, markdownLinkTitleRe } from './util/link';
-import { link } from 'fs';
+import { linkIdRe, markdownLinkRe, markdownPrefixRe, markdownLinkLabelRe } from './util/link';
 
 export class EditorLinkHandler {
 
@@ -187,7 +185,7 @@ export class EditorLinkHandler {
         if (!titleRange) { return; }
 
         const titleLinkText = editor.document.getText(titleRange);
-        const title = editor.document.getText(titleRange).match(markdownLinkTitleRe)![0];
+        const title = editor.document.getText(titleRange).match(markdownLinkLabelRe)![0];
         const fileName = camelize(title);
         let text = editor.document.getText(editor.selection).replace(/^\#+/,'#');
 

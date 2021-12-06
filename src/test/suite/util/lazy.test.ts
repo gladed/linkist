@@ -1,19 +1,19 @@
 import * as assert from 'assert';
-import { lazy, Lazy } from '../../../util/lazy';
+import { lazy } from '../../../util/lazy';
 
 suite('lazy', () => {
     test('should evaluate later', () => {
         let source = 5;
         let l = lazy(() => source);
         source = 6;
-        assert.deepStrictEqual(l.value, 6);
+        assert.strictEqual(l.value, 6);
     });
 
     test('should not have value before its time', () => {
         let l = lazy(() => 5);
-        assert.deepStrictEqual(l.hasValue, false);
+        assert.strictEqual(l.hasValue, false);
         l.value;
-        assert.deepStrictEqual(l.hasValue, true);
+        assert.strictEqual(l.hasValue, true);
     });
 
     test('should map lazy value on demand', () => {
@@ -21,6 +21,10 @@ suite('lazy', () => {
         let l = lazy(() => source);
         let m = l.map((x) => x.toString());
         source = 6;
-        assert.deepStrictEqual(m.value, "6");
+        assert.strictEqual(l.hasValue, false);
+        assert.strictEqual(m.hasValue, false);
+        assert.strictEqual(m.value, "6");
+        assert.strictEqual(l.hasValue, true);
+        assert.strictEqual(m.hasValue, true);
     });
 });

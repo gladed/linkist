@@ -9,9 +9,10 @@ import {
 } from 'vscode';
 
 suite('link command', async () => {
-    const testDirectory = '../../../src/test/res/';
+    const testDirectory = '../../../../src/test/res/';
     const uri = vscode.Uri.file(path.join(__dirname + testDirectory + 'test.md'));
-
+    
+    // Need a throwaway workspace
     async function setText(editor: TextEditor, text: string) {
         await editor.edit(builder => {
             builder.delete(new Range(new Position(0, 0),

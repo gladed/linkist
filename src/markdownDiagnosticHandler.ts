@@ -4,7 +4,7 @@ import {
     DiagnosticSeverity,
 } from 'vscode';
 import Linker from "./linker";
-import { Disposable } from "./util/disposable";
+import { Disposer } from "./util/disposer";
 import { Link } from './util/link';
 
 class Issue extends Diagnostic {
@@ -13,7 +13,7 @@ class Issue extends Diagnostic {
     }
 }
 
-export class MarkdownDiagnosticHandler extends Disposable {
+export class MarkdownDiagnosticHandler extends Disposer {
 
     constructor(diagnostics: DiagnosticCollection, linker: Linker) {
         super();

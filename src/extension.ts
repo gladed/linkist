@@ -1,17 +1,14 @@
 import {
     ExtensionContext,
-    Location,
     Selection,
     SymbolInformation,
     commands,
     languages,
     window,
-    workspace,
 } from 'vscode';
 import Linker from './linker';
 import { EditorLinkHandler } from './editorLinkHandler';
-import { LinkTree } from './linkTree';
-import { Disposer } from './util/disposable';
+import { Disposer } from './util/disposer';
 import {
     MarkdownDefinitionProvider,
     MarkdownReferenceProvider,
@@ -67,48 +64,6 @@ export async function activate(context: ExtensionContext) {
     // Nice if you want to show metadata about a link, but also distracting and
     // the link tree will do a better job contextualizing the current link.
     // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
-
-    // Also not ready:
-    // function setupLinkExplorer() {
-    //     const linkExplorer = new LinkTree();
-
-    //     // Provide data to the explorer pane
-    //     disposer.register(window.registerTreeDataProvider('links', linkExplorer));
-
-    //     // When a link is selected (e.g. from LinkTree) specify the target selection range
-    //     disposer.register(commands.registerCommand('extension.openLinkSelection', (location: Location) => {
-    //         window.showTextDocument(location.uri, { selection: location.range });
-    //     }));
-
-    //     async function refreshLinks() {
-    //         if (window.activeTextEditor &&
-    //             window.activeTextEditor.document.uri.scheme === 'file' &&
-    //             window.activeTextEditor.document.languageId === 'markdown') {
-    //         }
-    //     }
-
-    //     // Enable/disable the explorer pane when the editor changes.
-    //     async function updateLinkExplorerVisibility() {
-    //         if (window.activeTextEditor) {
-    //             if (window.activeTextEditor.document.uri.scheme === 'file') {
-    //                 const enabled = window.activeTextEditor.document.languageId === 'markdown';
-    //                 if (enabled) {
-    //                     refreshLinks();
-    //                 }
-    //                 commands.executeCommand('setContext', 'markdownLinksEnabled', enabled);
-    //             }
-    //         } else {
-    //             commands.executeCommand('setContext', 'markdownLinksEnabled', false);
-    //         }
-    //     }
-    //     disposer.register(window.onDidChangeActiveTextEditor(updateLinkExplorerVisibility));
-    //     disposer.register(workspace.onDidChangeTextDocument(e => {
-    //         if (e.document.uri.fsPath === window.activeTextEditor?.document.uri.fsPath) {
-    //             refreshLinks();
-    //         }
-    //     }));
-    //     updateLinkExplorerVisibility();
-    // }
 
     async function handleLinkCommand() {
         const editor = window.activeTextEditor;

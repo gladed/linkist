@@ -6,7 +6,7 @@ import {
     Range,
     Uri,
 } from 'vscode';
-import { Disposable } from './util/disposable';
+import { Disposer } from './util/disposer';
 import { Lazy, lazy } from './util/lazy';
 import { MarkdownDocument } from './markdown';
 import MarkdownScanner from './markdown';
@@ -14,7 +14,7 @@ import { Link, LinkId, linkIdRe, prefixedAnyLinkRe, markdownPrefixRe } from './u
 import { textToDate } from './util/date';
 
 /** Scans for {@link Link}s in markdown documents. */
-export default class Linker extends Disposable {
+export default class Linker extends Disposer {
 
     private readonly onUpdatedLinksEmitter = this.register(new EventEmitter<Uri>());
 

@@ -3,7 +3,7 @@ import {
     Uri,
     workspace,
 } from 'vscode';
-import { Disposable } from './util/disposable';
+import { Disposer } from './util/disposer';
 
 // An interface for a line in the document that matches the return from [TextDocument.lineAt]
 export interface MarkdownLine {
@@ -41,7 +41,7 @@ export async function getMarkdownDocument(resource: Uri): Promise<MarkdownDocume
 }
 
 /** Watch for changes to all markdown files in the workspace. */
-export default class MarkdownScanner extends Disposable {
+export default class MarkdownScanner extends Disposer {
     private readonly onDidUpdateDocumentEmitter = this.register(new EventEmitter<MarkdownDocument>());
     private readonly onDidDeleteDocumentEmitter = this.register(new EventEmitter<Uri>());
     private watching = false;

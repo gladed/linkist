@@ -14,16 +14,13 @@ export const linkIdRe = /\^[A-Za-z0-9]{4,7}\^/g;
 /** The prefix part of a markdown line including headings and bullets. */
 export const markdownPrefixRe = new RegExp(/^ *(\#+ +|[0-9]+\. |[\*-] (\[.?\])?) */);
 
-/** The [title] part of a markdown link */
-export const markdownLinkTitleRe = /\[[^\\[]+\]/;
+/** The [label] part of a markdown link */
+export const markdownLinkLabelRe = /\[[^\\[]+\]/;
 
 /**
- * A markdown-delimited link containing a link ID like `[text](^....^)` with text as the first group.
+ * A markdown-delimited link containing a link ID like `[label](^....^)` with label as the first matched group.
  */
 export const markdownLinkRe = new RegExp(/\[([^\]]+)\]\(/.source + linkIdRe.source + '\\)');
-
-/** Either a markdown-delimited link or a standalone link ID, globally matched. */
-export const anyLinkRe = new RegExp('(' + markdownLinkRe.source + ')|(' + linkIdRe.source + ')', 'g');
 
 /** Optionally prefixed form of any link (global). */
 export const prefixedAnyLinkRe = new RegExp('(' + markdownPrefixRe.source + ')?((' +
@@ -93,6 +90,7 @@ export class LinkId {
     public equals(other: LinkId): boolean {
         return this.text === other.text;
     }
+
     public toString(): string {
         return this.text + "/" + this.date.toISOString().slice(0, 10) + "#" + this.ordinal;
     }
@@ -119,7 +117,7 @@ export class Link extends SymbolInformation {
         /** The entire line of text on which this link was found */
         public line: string,
 
-        /** The linkId found in {@param location}. */
+        /** The linkId found at {@param location}. */
         public linkId: LinkId,
 
         /** The markdown prefix characters associated with this link, if any. */

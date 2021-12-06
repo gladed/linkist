@@ -1,3 +1,4 @@
+
 /** Convert whatever text into a string containing only words in camelCase. */
 export function camelize(text: string) {
     let count = 0;

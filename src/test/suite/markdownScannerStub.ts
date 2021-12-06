@@ -1,9 +1,9 @@
-import MarkdownScanner, { MarkdownDocument } from '../../markdown';
+import { MarkdownDocument } from '../../markdown';
 import { EventEmitter, Uri } from 'vscode';
-import { Disposable } from '../../util/disposable';
+import { Disposer } from '../../util/disposer';
 
 /** Pretend to manage a bunch of markdown documents. */
-export class FakeMarkdownScanner extends Disposable {
+export class FakeMarkdownScanner extends Disposer {
     private readonly onDidUpdateDocumentEmitter = this.register(new EventEmitter<MarkdownDocument>());
     private readonly onDidDeleteDocumentEmitter = this.register(new EventEmitter<Uri>());
 
