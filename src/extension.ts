@@ -44,7 +44,7 @@ export async function activate(context: ExtensionContext) {
     if (window.activeTextEditor) {
         linker.linksIn(window.activeTextEditor.document.uri);
     } else {
-        disposer.register(window.onDidChangeActiveTextEditor(_ => {
+        disposer.register(window.onDidChangeActiveTextEditor(() => {
             if (window.activeTextEditor) {
                 linker.linksIn(window.activeTextEditor.document.uri);
             }}));
@@ -73,7 +73,7 @@ export async function activate(context: ExtensionContext) {
 
         const linkId = editorHandler.linkIdAt(editor.document, editor.selection.active);
         if (linkId) {
-            let links = await linker.lookupLinks(linkId);
+            const links = await linker.lookupLinks(linkId);
             if (!links.find(l => l.isHead) && await editorHandler.createNote(editor)) {
                 // Done already
             } else if (links.length === 2) {
@@ -81,7 +81,7 @@ export async function activate(context: ExtensionContext) {
                 if (jumpTo.location.range.start.line === editor.selection.start.line) {
                     jumpTo = links[1];
                 }
-                let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
+                const viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
                 await window.showTextDocument(jumpTo.location.uri, { selection: jumpTo.location.range, viewColumn: viewColumn });
             } else if (links.length > 2) {
                 let jumpTo: SymbolInformation | undefined;
@@ -89,7 +89,7 @@ export async function activate(context: ExtensionContext) {
                     jumpTo = links.find(symbol => symbol.name.startsWith("#"));
                 }
                 if (jumpTo) {
-                    let viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
+                    const viewColumn = window.visibleTextEditors.find(_ => _.document.uri === jumpTo!.location.uri)?.viewColumn;
                     await window.showTextDocument(jumpTo.location.uri, { selection: jumpTo.location.range, viewColumn: viewColumn });
                 } else {
                     commands.executeCommand("editor.action.referenceSearch.trigger");
@@ -106,4 +106,4 @@ export async function activate(context: ExtensionContext) {
     }
 }
 
-export function deactivate() { }
+export function deactivate() { true; }

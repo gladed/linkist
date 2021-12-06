@@ -12,7 +12,7 @@ export class FakeMarkdownScanner extends Disposer {
     /** Invoke {@param callback} for every markdown document in the workspace. */
 
     async forEach(callback: (document: MarkdownDocument) => void) {
-        for (let document of this.cache.values()) {
+        for (const document of this.cache.values()) {
             callback(document);
         }
     }

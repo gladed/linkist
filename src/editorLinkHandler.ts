@@ -62,7 +62,6 @@ export class EditorLinkHandler {
      * and return a position where the new text may be inserted
      */
     public async insertLink(editor: TextEditor) {
-        const at = editor.selection.active;
         const multiline = editor.selection.active.line !== editor.selection.anchor.line;
         if (multiline) {
             return await this.handleMultiLine(editor);
@@ -77,7 +76,7 @@ export class EditorLinkHandler {
         linkText: string | undefined = undefined
     ): Promise<Range | undefined> {
         // If there's a link present already, return it
-        let linkedRange = this.findMarkdownLink(editor, range.start);
+        const linkedRange = this.findMarkdownLink(editor, range.start);
         if (linkedRange) {
             return linkedRange;
         }
@@ -128,7 +127,7 @@ export class EditorLinkHandler {
 
         try {
             const alreadyLinkedText = editor.document.getText(alreadyLinked);
-            const dest = Uri.parse(alreadyLinkedText.match(/\[[^\]]*\]\(([^\)]+)\)/)![1], true);
+            const dest = Uri.parse(alreadyLinkedText.match(/\[[^\]]*\]\(([^)]+)\)/)![1], true);
             commands.executeCommand('vscode.open', dest);
             return true;
         } catch (e) {
@@ -162,7 +161,7 @@ export class EditorLinkHandler {
         let result: Range | undefined;
         if (editor.document.getText(near).length === 0) {
             // `# A bunch of text in a heading`
-            let prefixRange = editor.document.getWordRangeAtPosition(near.start, this.prefixedUnlinkedLineRe);
+            const prefixRange = editor.document.getWordRangeAtPosition(near.start, this.prefixedUnlinkedLineRe);
             if (prefixRange) {
                 const lineRange = editor.document.lineAt(prefixRange.start.line).range;
                 const start = lineRange.start.translate(0,
@@ -187,7 +186,7 @@ export class EditorLinkHandler {
         const titleLinkText = editor.document.getText(titleRange);
         const title = editor.document.getText(titleRange).match(markdownLinkLabelRe)![0];
         const fileName = camelize(title);
-        let text = editor.document.getText(editor.selection).replace(/^\#+/,'#');
+        let text = editor.document.getText(editor.selection).replace(/^#+/,'#');
 
         const titleLink = await this.linker.linkAt(editor.document.uri, titleRange.start);
         if (titleLink?.parent) {
@@ -206,12 +205,12 @@ export class EditorLinkHandler {
         return titleRange;
     }
 
-    public async createNote(editor: TextEditor): Promise<Boolean> {
+    public async createNote(editor: TextEditor): Promise<boolean> {
         const link = await this.linker.linkAt(editor.document.uri, editor.selection.start);
         if (!link || !link.label || link.isHead) {
             return false;
         }
-        const title = link.label!!.replace(/\b\w/g, c => c.toUpperCase());
+        const title = link.label!.replace(/\b\w/g, c => c.toUpperCase());
         const fileName = camelize(title);
         let text = '# [' + title + '](^' + link.linkId.text + '^)\n';
         if (link?.parent) {

@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.11
+
+* Update package versions, add internal test cases.
+
 ## 1.4.10
 
 * Ctrl+Space replacement of links improved.

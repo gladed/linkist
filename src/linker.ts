@@ -7,10 +7,12 @@ import {
     Uri,
 } from 'vscode';
 import { Disposer } from './util/disposer';
+import { PublicInterfaceOf } from './util/interface';
 import { Lazy, lazy } from './util/lazy';
 import { MarkdownDocument } from './markdown';
 import MarkdownScanner from './markdown';
-import { Link, LinkId, linkIdRe, prefixedAnyLinkRe, markdownPrefixRe } from './util/link';
+import { Link, linkIdRe, prefixedAnyLinkRe, markdownPrefixRe } from './util/link';
+import { LinkId } from './util/linkId';
 import { textToDate } from './util/date';
 
 /** Scans for {@link Link}s in markdown documents. */
@@ -29,7 +31,7 @@ export default class Linker extends Disposer {
     /** A lazily-evaluated map of file paths to arrays of links within. */
     private lazyFileMap = lazy(async () => {
         // Note: Strings are used because Uri's are not stable map keys
-        let cache = new Map<string, Lazy<Link[]>>();
+        const cache = new Map<string, Lazy<Link[]>>();
 
         // Initialize the cache
         await this.scanner.forEach(doc => {
@@ -68,7 +70,7 @@ export default class Linker extends Disposer {
 
     /** Wipe out all knowledge of {@param links} so they can be repopulated. */
     private invalidateLinks(links: Link[] | undefined) {
-        for (let link of links ?? []) {
+        for (const link of links ?? []) {
             this.linkMap.delete(link.linkId.text);
         }
     }
@@ -80,9 +82,9 @@ export default class Linker extends Disposer {
         }
         // Review all links in all files
         const toAdd = new Map<string, Link[]>();
-        for (let links of (await this.fileMap).values()) {
-            for (let link of links.value) {
-                let linkIdText = link.linkId.text;
+        for (const links of (await this.fileMap).values()) {
+            for (const link of links.value) {
+                const linkIdText = link.linkId.text;
                 if (!this.linkMap.get(linkIdText)) {
                     // This link isn't in the map yet so build it up
                     const addLinks = toAdd.get(linkIdText);
@@ -98,21 +100,21 @@ export default class Linker extends Disposer {
             }
         }
 
-        for (let links of toAdd.values()) {
+        for (const links of toAdd.values()) {
             this.linkMap.set(links[0].linkId.text, links);
         }
 
-        for (let uri of urisUpdated) {
+        for (const uri of urisUpdated) {
             this.onUpdatedLinksEmitter.fire(uri);
         }
     }
 
     /** Return an unused link ID appropriate for the current date. */
-    public async newLinkId(name: string = '') {
+    public async newLinkId(name = '') {
         let ordinal = 0;
         const date = textToDate(name);
-        while (true) {
-            let linkId = LinkId.create(ordinal++, date);
+        while (true) { // eslint-disable-line no-constant-condition
+            const linkId = LinkId.encode(ordinal++, date);
             if ((await this.lookupLinks(linkId.text)).length === 0) {
                 return linkId;
             }
@@ -133,7 +135,7 @@ export default class Linker extends Disposer {
     public async linkAt(resource: Uri, at: Position) {
         const links: Link[] | undefined = (await this.fileMap).get(resource.fsPath)?.value;
         if (links) {
-            for (let link of links) {
+            for (const link of links) {
                 if (link.location.range.contains(at)) {
                     return link;
                 }
@@ -160,7 +162,7 @@ export default class Linker extends Disposer {
                 if (token?.isCancellationRequested) {
                     return [];
                 }
-                let all = flatten(sets)
+                const all = flatten(sets)
                     .filter(symbol => symbol.name.indexOf(query) !== -1);
 
                 // Don't return multiple matches for the same line?
@@ -178,7 +180,7 @@ export default class Linker extends Disposer {
             let parent: Link | undefined;
 
             for (let index = 0; index < document.lineCount; index++) {
-                let lineText = document.lineAt(index).text;
+                const lineText = document.lineAt(index).text;
                 let match;
 
                 // For any heading line, roll parent back to a link above it if possible
@@ -189,8 +191,9 @@ export default class Linker extends Disposer {
 
                 while ((match = prefixedAnyLinkRe.exec(lineText)) !== null) {
                     const linkId = LinkId.decode(match[0].match(linkIdRe)![0].slice(1, -1));
-                    let location, prefix, prefixMatch;
-                    if (prefixMatch = match[0].match(markdownPrefixRe)) {
+                    let location, prefix;
+                    const prefixMatch = match[0].match(markdownPrefixRe);
+                    if (prefixMatch) {
                         // There's a prefix involved in this link:
                         location = new Location(document.uri,
                             new Range(index, match.index + prefixMatch[0].length, index, match.index + match[0].length));
@@ -217,6 +220,6 @@ function flatten<T>(arr: ReadonlyArray<T>[]): T[] {
 }
 
 function headDepth(text: string): number | undefined {
-    let match = text.match(/^\#+/);
+    const match = text.match(/^#+/);
     return match ? match[0].trim().length : undefined;
 }

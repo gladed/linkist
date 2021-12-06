@@ -20,6 +20,7 @@ suite('link command', async () => {
             builder.insert(new Position(0, 0), text);
         });
     }
+
     test('link a heading', async () => {
         // Open the document
         const document = await vscode.workspace.openTextDocument(uri);
@@ -31,8 +32,9 @@ suite('link command', async () => {
         await vscode.commands.executeCommand('linkist.link');
 
         // Validate there's a link there
-        assert.ok(editor.document.lineAt(0).text.match(/\# \[Hello\]\(\^[A-Za-z0-9]{4,7}\^\)/));
+        assert.ok(editor.document.lineAt(0).text.match(/# \[Hello\]\(\^[A-Za-z0-9]{4,7}\^\)/));
     });
+
     test('link a bullet', async () => {
         // Open the document
         const document = await vscode.workspace.openTextDocument(uri);

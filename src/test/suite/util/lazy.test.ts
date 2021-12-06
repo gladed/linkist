@@ -4,13 +4,13 @@ import { lazy } from '../../../util/lazy';
 suite('lazy', () => {
     test('should evaluate later', () => {
         let source = 5;
-        let l = lazy(() => source);
+        const l = lazy(() => source);
         source = 6;
         assert.strictEqual(l.value, 6);
     });
 
     test('should not have value before its time', () => {
-        let l = lazy(() => 5);
+        const l = lazy(() => 5);
         assert.strictEqual(l.hasValue, false);
         l.value;
         assert.strictEqual(l.hasValue, true);
@@ -18,8 +18,8 @@ suite('lazy', () => {
 
     test('should map lazy value on demand', () => {
         let source = 5;
-        let l = lazy(() => source);
-        let m = l.map((x) => x.toString());
+        const l = lazy(() => source);
+        const m = l.map((x) => x.toString());
         source = 6;
         assert.strictEqual(l.hasValue, false);
         assert.strictEqual(m.hasValue, false);

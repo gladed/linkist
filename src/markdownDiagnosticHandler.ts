@@ -20,7 +20,7 @@ export class MarkdownDiagnosticHandler extends Disposer {
         this.register(linker.onUpdatedLinks(async uri => {
             // First: trash ALL diagnostics for this link text.
             const issues: Issue[] = [];
-            for (let link of (await linker.linksIn(uri)) ?? []) {
+            for (const link of (await linker.linksIn(uri)) ?? []) {
                 const links = linker.linksFor(link.linkId.text) ?? [];
                 this.checkMultihead(issues, links, link) &&
                     this.checkHeadless(issues, links, link) &&
@@ -30,7 +30,7 @@ export class MarkdownDiagnosticHandler extends Disposer {
         }));
     }
 
-    private checkMultihead(issues: Issue[], links: Link[], link: Link): Boolean {
+    private checkMultihead(issues: Issue[], links: Link[], link: Link): boolean {
         if (links?.filter(l => l.isHead).length > 1) {
             issues.push(new Issue(link, "Multiple # heads for this link", DiagnosticSeverity.Error));
             return false;
@@ -38,7 +38,7 @@ export class MarkdownDiagnosticHandler extends Disposer {
         return true;
     }
 
-    private checkHeadless(issues: Issue[], links: Link[], link: Link): Boolean {
+    private checkHeadless(issues: Issue[], links: Link[], link: Link): boolean {
         if (!link.isHead && !links?.find(l => l.isHead)) {
             issues.push(new Issue(link, "No # head for this link", DiagnosticSeverity.Warning));
             return false;
@@ -46,7 +46,7 @@ export class MarkdownDiagnosticHandler extends Disposer {
         return true;
     }
 
-    private checkWeak(issues: Issue[], links: Link[], link: Link): Boolean {
+    private checkWeak(issues: Issue[], links: Link[], link: Link): boolean {
         if (links.length < 2) {
             issues.push(new Issue(link, "No links to this; make more connections", DiagnosticSeverity.Hint));
             return false;

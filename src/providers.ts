@@ -22,7 +22,7 @@ export class MarkdownDefinitionProvider implements DefinitionProvider {
         if (sourceLink) {
             const references = this.linker.linksFor(sourceLink.linkId.text);
             if (references) {
-                for (let target of references) {
+                for (const target of references) {
                     if (target.isHead) {
                         return target.location;
                     }
@@ -59,7 +59,7 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
     constructor(public linker: Linker) { }
 
     // A candidate link that does NOT match on `[[`
-    candidateLinkStartRe = /(^|[^\[])(\[[^\\[]*\])/;
+    candidateLinkStartRe = /(^|[^[])(\[[^\\[]*\])/;
 
     // Accept an empty or populated markdownLink
     candidateRe = new RegExp(this.candidateLinkStartRe.source + '(\\(' + linkIdRe.source + '\\))?([^\\(]|$)');
@@ -68,7 +68,7 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
         document: TextDocument,
         position: Position,
         token: CancellationToken,
-        ___: CompletionContext
+        _: CompletionContext,
     ) {
         // Return no matches unless we're on a real candidate
         let candidate = document.getWordRangeAtPosition(position, this.candidateRe);
@@ -77,12 +77,12 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
         }
 
         // Review the match again and select the correct replacement range
-        const matches = document.getText(candidate).match(this.candidateRe)!!;
+        const matches = document.getText(candidate).match(this.candidateRe)!;
         candidate = new Range(candidate.start.translate(0, matches[1].length),
             candidate.end.translate(0, -matches[4].length));
 
         // Convert all head links into [CompletionItem] objects for insertion
-        let links = (await this.linker.allLinks(token))
+        const links = (await this.linker.allLinks(token))
             .filter((link) => link.isHead)
             .map((link) => {
                 const markdownLink = "[" + link.label + "](^" + link.linkId.text + "^)";

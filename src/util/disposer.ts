@@ -5,14 +5,17 @@ export class Disposer extends Disposable {
     private isDisposed = false;
     protected disposables: Disposable[] = [];
 
-    public dispose(): any {
-        if (this.isDisposed) return;
+    public dispose() {
+        if (this.isDisposed) {
+            return;
+        }
         this.isDisposed = true;
+        super.dispose();
         Disposer.disposeAll(this.disposables);
     }
 
-    public constructor(toDispose = ()=>{}) {
-        super(toDispose)
+    public constructor(toDispose: () => void = () => undefined) {
+        super(toDispose);
     }
 
     // Registers a disposable for later disposing

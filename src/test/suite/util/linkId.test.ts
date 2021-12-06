@@ -2,11 +2,11 @@ import * as assert from 'assert';
 import { LinkId } from '../../../util/linkId';
 
 suite('LinkId', () => {
-    test('should create links', () => {
+    test('should encode links', () => {
         assert.strictEqual(LinkId.encode(5, new Date("2020-06-04")).text, "gAws");
     });
 
-    test('should create links from today', () => {
+    test('should encode link with date if not given', () => {
         assert.notStrictEqual("gAws", LinkId.encode(5, undefined));
     });
 

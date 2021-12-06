@@ -74,17 +74,17 @@ export default class MarkdownScanner extends Disposer {
             return;
         }
 
-        let fileWatcher = this.register(workspace.createFileSystemWatcher('**/*.md'));
+        const fileWatcher = this.register(workspace.createFileSystemWatcher('**/*.md'));
         this.watching = true;
 
         fileWatcher.onDidChange(async changed => {
-            let document = await getMarkdownDocument(changed);
+            const document = await getMarkdownDocument(changed);
             if (document) {
                 this.onDidUpdateDocumentEmitter.fire(document);
             }
         });
         fileWatcher.onDidCreate(async created => {
-            let document = await getMarkdownDocument(created);
+            const document = await getMarkdownDocument(created);
             if (document) {
                 this.onDidUpdateDocumentEmitter.fire(document);
             }

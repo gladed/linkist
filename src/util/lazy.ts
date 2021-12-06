@@ -14,7 +14,7 @@ export function lazy<T>(getValue: () => T): Lazy<T> {
 
 /** Internal implementation of a {@link Lazy}. */
 class LazyValue<T> implements Lazy<T> {
-    private _hasValue: boolean = false;
+    private _hasValue = false;
     private _value?: T;
 
     constructor(
@@ -26,7 +26,7 @@ class LazyValue<T> implements Lazy<T> {
             this._hasValue = true;
             this._value = this.getValue();
         }
-        return this._value!;
+        return this._value!; // eslint-disable-line @typescript-eslint/no-non-null-assertion
     }
 
     get hasValue(): boolean {
