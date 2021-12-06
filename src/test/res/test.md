@@ -1,7 +1,7 @@
 # A file
 
 # [Partial]()
-[whatever](^MDMp^)
+[whatever](^kDMp^)
 
 ## [Link](^MDMp^)
 
