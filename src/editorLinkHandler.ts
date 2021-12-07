@@ -2,6 +2,7 @@ import {
     TextDocument,
     Position,
     Range,
+    Selection,
     TextEditor,
     Uri,
     workspace,
@@ -21,21 +22,30 @@ export class EditorLinkHandler {
     emptyTargetRe = new RegExp(this.noTargetRe.source + '\\(\\)');
     /** An optionally prefixed link containing ANY target. */
     anyTargetRe = new RegExp(this.noTargetRe.source + '\\([^\\)]+\\)');
-    /** A line with prefix parts also containing a link. */
+    /** A line with optional prefix parts also containing a link. */
     prefixLinkRe = new RegExp('(' + markdownPrefixRe.source + ')?' + markdownLinkRe.source);
-    prefixedUnlinkedLineRe = new RegExp(markdownPrefixRe.source + '[^\\[]+');
+
+    prefixThenLinkRe = new RegExp('(' + markdownPrefixRe.source + ')[^[]*' + markdownLinkRe.source);
+
+    prefixedUnlinkedLineRe = new RegExp(markdownPrefixRe.source + '[^[]+');
 
     constructor(private linker: Linker) { }
 
-    public linkIdAt(document: TextDocument, position: Position): string | undefined {
+    public linkIdAt(document: TextDocument, selection: Selection): string | undefined {
         // Find fully-qualified link
-        let range = document.getWordRangeAtPosition(position, this.prefixLinkRe);
+        let range = document.getWordRangeAtPosition(selection.active, this.prefixLinkRe);
         if (range) {
             return document.getText(range).match(linkIdRe)![0].slice(1, -1);
         }
 
+        // If there's no selection look more aggressively
+        range = document.getWordRangeAtPosition(selection.active, this.prefixThenLinkRe);
+        if (selection.isEmpty && range) {
+            return document.getText(range).match(linkIdRe)![0].slice(1, -1);
+        }
+
         // Allow for standalone link IDs ^...^
-        range = document.getWordRangeAtPosition(position, linkIdRe);
+        range = document.getWordRangeAtPosition(selection.active, linkIdRe);
         if (range) {
             range = new Range(range.start.translate(0, 1), range.end.translate(0, -1));
             return document.getText(range);
@@ -113,6 +123,7 @@ export class EditorLinkHandler {
     }
 
     public handleHasTarget(editor: TextEditor, at: Range): Range | undefined {
+        // `[in a link](^...^)
         const alreadyLinked = editor.document.getWordRangeAtPosition(at.start, this.anyTargetRe);
         if (alreadyLinked) {
             return at;
@@ -160,7 +171,7 @@ export class EditorLinkHandler {
         // If nothing selected, pick a likely candidate for selection
         let result: Range | undefined;
         if (editor.document.getText(near).length === 0) {
-            // `# A bunch of text in a heading`
+            // `# Unlinked text with prefix`
             const prefixRange = editor.document.getWordRangeAtPosition(near.start, this.prefixedUnlinkedLineRe);
             if (prefixRange) {
                 const lineRange = editor.document.lineAt(prefixRange.start.line).range;

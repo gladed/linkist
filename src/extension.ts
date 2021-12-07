@@ -71,7 +71,7 @@ export async function activate(context: ExtensionContext) {
             return;
         }
 
-        const linkId = editorHandler.linkIdAt(editor.document, editor.selection.active);
+        const linkId = editorHandler.linkIdAt(editor.document, editor.selection);
         if (linkId) {
             const links = await linker.lookupLinks(linkId);
             if (!links.find(l => l.isHead) && await editorHandler.createNote(editor)) {
