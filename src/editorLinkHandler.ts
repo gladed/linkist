@@ -8,7 +8,7 @@ import {
     commands,
     window
 } from 'vscode';
-import { camelize } from './util/text';
+import { camelize, titleCase } from './util/text';
 import { TextEncoder } from 'util';
 import Linker from './linker';
 import { linkIdRe, markdownLinkRe, markdownPrefixRe, markdownLinkLabelRe } from './util/link';
@@ -139,10 +139,10 @@ export class EditorLinkHandler {
     private async handleUnlinked(editor: TextEditor, at: Range): Promise<Range | undefined> {
         // Find a range and promote it to a link
         const linkRange: Range = this.findLinkableRange(editor, at);
-        const linkText = (await this.linker.newLinkId(editor.document.getText(at))).text.trim();
+        const linkText = (await this.linker.newLinkId(editor.document.getText(at))).text;
         const linkLabel = editor.document.getText(linkRange).toLowerCase();
         const match = (await this.linker.allLinks()).find((link) => link.label?.toLowerCase() === linkLabel);
-        if (match && linkText.length > 0) {
+        if (match) {
             await editor.edit(builder => {
                 builder.insert(linkRange.start, "[");
                 builder.insert(linkRange.end, "](^" + match.linkId.text + "^)");
@@ -210,7 +210,7 @@ export class EditorLinkHandler {
         if (!link || !link.label || link.isHead) {
             return false;
         }
-        const title = link.label!.replace(/\b\w/g, c => c.toUpperCase());
+        const title = titleCase(link.label);
         const fileName = camelize(title);
         let text = '# [' + title + '](^' + link.linkId.text + '^)\n';
         if (link?.parent) {

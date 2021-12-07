@@ -8,7 +8,7 @@ const alphabet = 'j6EpuN2TkFbJBVSCfhnarZ95W8KARmwUytiqQgcYxsX3D7dM4ePGzHv';
  */
 export class LinkId {
     private constructor(
-        /** Text representing the link. */
+        /** Text representing the link ("iWy3") */
         public readonly text: string,
         /** Date of original creation. */
         public readonly date: Date,

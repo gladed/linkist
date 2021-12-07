@@ -9,3 +9,10 @@ export function camelize(text: string) {
         })
         .replace(/[^\u00BF-\u1FFF\u2C00-\uD7FF\w]+/g, '');
 }
+
+/** Convert any number of words into Title Case. */
+export function titleCase(text: string) {
+    return text.split(/\s+/)
+        .map((word) => word.length ? word[0].toUpperCase() + word.substr(1) : '')
+        .join(' ');
+}

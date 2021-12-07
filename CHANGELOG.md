@@ -1,5 +1,9 @@
 # Change Log
 
+## 1.4.12
+
+* Pick better title names (#16).
+
 ## 1.4.11
 
 * Update package versions, add internal test cases.
