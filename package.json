@@ -2,7 +2,7 @@
   "name": "linkist",
   "displayName": "linkist",
   "description": "Create persistent links between Markdown files",
-  "version": "1.4.11",
+  "version": "1.4.12",
   "publisher": "gladed",
   "icon": "img/icon_100.png",
   "repository": {
