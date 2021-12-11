@@ -22,12 +22,12 @@
   * In VSCode: add `"files.trimTrailingWhitespace": true` to settings.
 2. Clean up warnings, `npm run lint`
 3. Run tests (see above)
-4. Validate `npm run vscode:prepublish`
-5. Login (if needed) `vsce login gladed`
-6. Update `CHANGELOG.md`
-7. Publish `vsce publish [patch | minor | major]`
+4. Validate, `npm run vscode:prepublish`
+5. Login (if needed), `vsce login gladed`
+6. Update, `CHANGELOG.md`
+7. Publish (select type of version bump), `vsce publish [patch | minor | major]`
   * Maybe also `npx ovsx publish -p $(cat .open-vsx-token)`
-8. Tag `git tag v$(jq -r ".version" package.json);git push --tags`
+8. Tag `git push && git push --tags`
 
 # Promote tag to release at https://github.com/gladed/linkist/tags
 ```

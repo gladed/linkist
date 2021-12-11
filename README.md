@@ -1,4 +1,4 @@
-[![VS Code Extension](https://img.shields.io/badge/VSCode-Extension-green)](https://marketplace.visualstudio.com/items?itemName=gladed.linkist) [![VS Code Extension](https://img.shields.io/badge/OpenVSX-Extension-green)](https://open-vsx.org/extension/gladed/linkist)
+[![VS Code Extension](https://img.shields.io/badge/VSCode-Extension-green)](https://marketplace.visualstudio.com/items?itemName=gladed.linkist) [![VS Code Extension](https://img.shields.io/badge/OpenVSX-Extension-green)](https://open-vsx.org/extension/gladed/linkist) [![CHANGELOG](https://img.shields.io/badge/History-CHANGELOG.md-blue)](https://github.com/gladed/linkist/blob/master/CHANGELOG.md#change-log)
 
 
 # ![Icon](img/icon_20_24.png) Linkist
@@ -45,6 +45,7 @@ It's a great way to implement a private "Zettelkasten" note taking system as des
   * Select multiple lines (starting with a heading) and `Ctrl+Alt+L` to extract that section into a new note
   * Use `Ctrl+Alt+L` on a link with no associated heading yet
 * Type `[` to auto-complete from existing links.
+* Type Ctrl+Space on a link to see more about it.
 * Read the [Change Log](CHANGELOG.md).
 
 See [Frequently Asked Questions](https://github.com/gladed/linkist/wiki/FAQ) for more.

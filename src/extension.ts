@@ -38,6 +38,7 @@ export async function activate(context: ExtensionContext) {
     // Allow the user to auto-complete a link when `[` is typed
     disposer.register(languages.registerCompletionItemProvider(markdownSelector, new MarkdownCompletionItemProvider(linker), '['));
 
+    // Add warnings/errors when something doesn't look right about a link
     disposer.register(new MarkdownDiagnosticHandler(languages.createDiagnosticCollection("Link diagnostics"), linker));
 
     // Auto startup
@@ -50,6 +51,10 @@ export async function activate(context: ExtensionContext) {
             }}));
     }
 
+    // Nice if you want to show metadata about a link, but may be distracting.
+    // One Fine Day the link tree will do a better job contextualizing the current link.
+    // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
+
     // Things we don't do:
 
     // Don't do symbol searches, markdown plugin already handles these for # lines
@@ -60,10 +65,6 @@ export async function activate(context: ExtensionContext) {
 
     // This underlines the whole link but breaks CTRL+CLICK on # head because it links to itself.
     // disposer.register(languages.registerDocumentLinkProvider(markdown, ...));
-
-    // Nice if you want to show metadata about a link, but also distracting and
-    // the link tree will do a better job contextualizing the current link.
-    // disposer.register(languages.registerHoverProvider(markdownSelector, new MarkdownHoverProvider(linker)));
 
     async function handleLinkCommand() {
         const editor = window.activeTextEditor;
