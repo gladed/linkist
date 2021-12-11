@@ -1,7 +1,5 @@
 # Developer playbook
 
-TBD: Clean this up.
-
 ## Development Environment
 
 * First time:
@@ -19,27 +17,17 @@ TBD: Clean this up.
 
 * See [Publishing Extensions](https://code.visualstudio.com/api/working-with-extensions/publishing-extension).
 
-```
-# Clean up spaces
-find src -name "*.ts" -exec bash -c 'expand -it 4 {} | sed -E "s/[[:space:]]*$//" | sponge {}' \;
-
-# If needed, (see https://dev.azure.com/, https://code.visualstudio.com/api/working-with-extensions/publishing-extension)
-vsce login gladed
-
-# Validate
-npm run vscode:prepublish
-
-# Update CHANGELOG.md with anticipated next version
-
-# Commit all changes
-git commit -m "Updated changelog"
-
-# Publish to MS and open-vsx
-vsce publish [patch | minor | major]
-npx ovsx publish -p $(cat .open-vsx-token)
-
-# Tag
-git push --tags
+1. Clean up spaces
+  * In Bash: `find src -name "*.ts" -exec bash -c 'expand -it 4 {} | sed -E "s/[[:space:]]*$//" | sponge {}' \;`
+  * In VSCode: add `"files.trimTrailingWhitespace": true` to settings.
+2. Clean up warnings, `npm run lint`
+3. Run tests (see above)
+4. Validate `npm run vscode:prepublish`
+5. Login (if needed) `vsce login gladed`
+6. Update `CHANGELOG.md`
+7. Publish `vsce publish [patch | minor | major]`
+  * Maybe also `npx ovsx publish -p $(cat .open-vsx-token)`
+8. Tag `git tag v$(jq -r ".version" package.json);git push --tags`
 
 # Promote tag to release at https://github.com/gladed/linkist/tags
 ```
