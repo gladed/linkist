@@ -2,8 +2,8 @@
 
 # [Partial]()
 
-[whatever](^kDMp^)
+[whatever](^kD2p^)
 
-## [Link](^MDMp^)
+## [Link](^MD2p^)
 
 Some text

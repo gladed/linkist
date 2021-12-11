@@ -2,7 +2,9 @@
 
 ## 1.4.12
 
-* Pick better title names (#16).
+* Fix auto-completion when creating a link on a bullet line (#18).
+* Smarter handling of `* Item [Link](^...^)` (#17).
+* Pick better title names when creating topics (#16).
 
 ## 1.4.11
 
@@ -22,17 +24,17 @@
 ## 1.4.8
 
 * `[` now allows auto-completion to an existing link head
-* Multiline link "from" line more forgiving about parent depth
+* Multi-line link "from" line more forgiving about parent depth
 
 ## 1.4.6
 
-* Multiline extraction includes "From" link if appropriate.
+* Multi-line extraction includes "From" link if appropriate.
 * Enabled definitions and references: Ctrl+Click and F12 open the "peek" view.
 * Use "Peek References" (F12) instead of symbol search (Ctrl+T) to show link targets.
 
 ## 1.4.5
 
-* Better headings and filenames in multiline extraction
+* Better headings and filenames in multi-line extraction
 * If a date like `2020-06-01` is present in link name encode into link id
 
 ## 1.4.4
@@ -44,7 +46,7 @@
 ## 1.4.1
 
 * Fixed some cases for finding link IDs and the right place to insert them
-* Added multiline extract-to-file
+* Added multi-line extract-to-file
 * Visit external link if it's the only thing on the line
 
 ## 1.4.0

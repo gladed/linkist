@@ -1,7 +1,6 @@
 import {
     CancellationToken,
     CompletionItemProvider,
-    CompletionContext,
     CompletionList,
     DefinitionProvider,
     Position,
@@ -12,12 +11,12 @@ import {
     CompletionItemKind,
 } from 'vscode';
 import Linker from './linker';
-import { linkIdRe } from './util/link';
+import { markdownPrefixRe, linkIdRe } from './util/link';
 
 /** Tell VSCode how to find the "definition" for a link id. */
 export class MarkdownDefinitionProvider implements DefinitionProvider {
     constructor(public linker: Linker) { }
-    async provideDefinition(document: TextDocument, position: Position, _: CancellationToken) {
+    async provideDefinition(document: TextDocument, position: Position) {
         const sourceLink = await this.linker.linkAt(document.uri, position);
         if (sourceLink) {
             const references = this.linker.linksFor(sourceLink.linkId.text);
@@ -42,7 +41,6 @@ export class MarkdownReferenceProvider implements ReferenceProvider {
         document: TextDocument,
         position: Position,
         context: ReferenceContext,
-        _: CancellationToken
     ) {
         const link = await this.linker.linkAt(document.uri, position);
         if (!link) {
@@ -58,17 +56,14 @@ export class MarkdownReferenceProvider implements ReferenceProvider {
 export class MarkdownCompletionItemProvider implements CompletionItemProvider {
     constructor(public linker: Linker) { }
 
-    // A candidate link that does NOT match on `[[`
-    candidateLinkStartRe = /(^|[^[])(\[[^\\[]*\])/;
-
     // Accept an empty or populated markdownLink
-    candidateRe = new RegExp(this.candidateLinkStartRe.source + '(\\(' + linkIdRe.source + '\\))?([^\\(]|$)');
+    candidateRe = new RegExp('(^|[^[]|' + markdownPrefixRe.source + ')' +
+        '(\\[[^\\[]*\\])(\\(' + linkIdRe.source + '\\))?([^\\(]|$)');
 
     async provideCompletionItems(
         document: TextDocument,
         position: Position,
-        token: CancellationToken,
-        _: CompletionContext,
+        token: CancellationToken
     ) {
         // Return no matches unless we're on a real candidate
         let candidate = document.getWordRangeAtPosition(position, this.candidateRe);
@@ -77,9 +72,13 @@ export class MarkdownCompletionItemProvider implements CompletionItemProvider {
         }
 
         // Review the match again and select the correct replacement range
-        const matches = document.getText(candidate).match(this.candidateRe)!;
+        const matches = document.getText(candidate).match(this.candidateRe);
+        if (!matches) {
+            return [];
+        }
+
         candidate = new Range(candidate.start.translate(0, matches[1].length),
-            candidate.end.translate(0, -matches[4].length));
+            candidate.end.translate(0, -matches[6].length));
 
         // Convert all head links into [CompletionItem] objects for insertion
         const links = (await this.linker.allLinks(token))
